@@ -730,7 +730,7 @@ img.px,.px img,.p,canvas.px{image-rendering:-moz-crisp-edges;image-rendering:pix
           <div class="panel">
             <h2>Небесный подъём</h2>
             <p>В небе висят колонны и платформы. На колонне Лера держится за золотую скобу. Нажми — она прыгнет к следующей. Пока она в воздухе, нажми ещё раз: крылья развернут её обратно и подбросят вверх.</p><p>На платформе Лера бежит сама — прыгай, пока платформа не кончилась.</p>
-            <p>Берегись колючек на колоннах, хмурых тучек и падающей домашки. А снизу поднимается кола — не дай ей догнать Леру!</p>
+            <p>Берегись колючек на колоннах и хмурых тучек. А снизу поднимается кола — не дай ей догнать Леру!</p>
             <button class="btn" id="tStart" type="button">Вверх!</button>
           </div>
         </div>
@@ -4086,7 +4086,6 @@ const Tower = {
       if (c.x < 14 || c.x > this.W - 14) c.vx = -c.vx;
       if (Math.abs(c.x - L.x) < 14 && L.h + 32 > c.h - 5 && L.h + 4 < c.h + 7) return this.die("cloud");
     }
-    if (this.maxH > 800 && Math.random() < .004 + lvl * .01) this.books.push({ x: rand(16, this.W - 16), h: this.cam + this.H + 10, vh: -1.3 - lvl * 1.2, col: pick(BOOK_COLS) });
     for (const b of this.books) {
       b.h += b.vh;
       if (Math.abs(b.x - L.x) < 12 && L.h + 32 > b.h - 4 && L.h < b.h + 4) return this.die("book");
