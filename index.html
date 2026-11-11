@@ -592,7 +592,7 @@ body{-webkit-font-smoothing:antialiased}
 .ball-wrap img{filter:drop-shadow(0 0 22px rgba(255,255,255,.7))}
 /* слои постобработки внутри рамки уровня */
 .post-hd,.post-tint,.post-grain{position:absolute!important;inset:0;width:100%!important;height:100%!important;pointer-events:none;display:block}
-.post-tint{mix-blend-mode:soft-light;opacity:.6}
+.post-tint{mix-blend-mode:soft-light;opacity:.38}
 .post-grain,.grain-all{background-image:var(--grain);background-size:128px 128px;opacity:.07;mix-blend-mode:overlay;animation:grain .5s steps(5) infinite}
 .grain-all{position:fixed;inset:-60px;z-index:14;pointer-events:none;opacity:.045}
 @keyframes grain{0%{background-position:0 0}20%{background-position:-37px 21px}40%{background-position:53px -14px}60%{background-position:-12px -48px}80%{background-position:27px 39px}}
@@ -1010,6 +1010,7 @@ body,#app{background:#0E1430}
             <h2>Атака хмуриков</h2>
             <p>Пять ночей подряд в парк приходят хмурики: тучки, будильники, домашка, брокколи, капли, тучки-стрелки и призраки. В конце каждой ночи — огромный босс, а в последнюю приходит сам Король Хмури.</p>
             <p>Води пальцем — Лера убегает, а стрелы купидона летят сами. Собирай искорки: на каждом новом уровне выбирай одно из трёх улучшений. Оружия 13 видов, носить можно шесть.</p>
+            <p>Со второй ночи бьют молнии: красный круг на земле — значит, пора бежать. Отсидеться на месте не выйдет.</p>
             <p>Прокачай оружие до максимума и возьми подходящую силу — случится эволюция ★. Грозовые тучи носят подарки.</p>
             <p>После каждой ночи игра сохраняется: если Лера проиграет, можно продолжить с начала той же ночи со всей прокачкой.</p>
             <button class="btn gold" id="svCont" type="button" hidden>Продолжить</button>
@@ -2728,15 +2729,15 @@ ICON_FN.fightCard = () => {
 // Слои внутри рамки уровня: сам мир (с CSS-цветокором) → HD-слой света → тонировка → зерно.
 // Размытую копию всего кадра (bloom) убрали: копирование готового кадра вызывало рывки (90-й процентиль кадра 26 мс → 4,6 мс без неё).
 const GRADES = {
-  city: { f: "contrast(1.12) saturate(1.3) brightness(1.04)", tint: "linear-gradient(180deg,rgba(70,60,220,.55),rgba(255,70,150,.45))" },
-  sunset: { f: "contrast(1.1) saturate(1.35) brightness(1.04)", tint: "linear-gradient(180deg,rgba(150,60,200,.5),rgba(255,150,60,.55))" },
-  beach: { f: "contrast(1.08) saturate(1.3) brightness(1.06)", tint: "linear-gradient(180deg,rgba(40,120,255,.4),rgba(255,180,90,.5))" },
-  winter: { f: "contrast(1.1) saturate(1.1) brightness(1.04)", tint: "linear-gradient(180deg,rgba(60,110,255,.5),rgba(170,220,255,.4))" },
-  candy: { f: "contrast(1.06) saturate(1.35) brightness(1.06)", tint: "linear-gradient(180deg,rgba(255,90,200,.45),rgba(255,200,120,.45))" },
-  sky: { f: "contrast(1.08) saturate(1.25) brightness(1.05)", tint: "linear-gradient(180deg,rgba(255,220,150,.45),rgba(90,120,255,.45))" },
-  arena: { f: "contrast(1.14) saturate(1.3) brightness(1.03)", tint: "linear-gradient(180deg,rgba(255,120,60,.45),rgba(60,40,200,.55))" },
-  night: { f: "contrast(1.12) saturate(1.3) brightness(1.05)", tint: "linear-gradient(180deg,rgba(40,90,200,.5),rgba(200,60,160,.45))" },
-  park: { f: "contrast(1.06) saturate(1.2)", tint: "linear-gradient(180deg,rgba(80,60,200,.35),rgba(255,140,90,.35))" }
+  city: { f: "contrast(1.05) saturate(1.04) brightness(1.02)", tint: "linear-gradient(180deg,rgba(70,60,220,.55),rgba(255,70,150,.45))" },
+  sunset: { f: "contrast(1.05) saturate(1.04) brightness(1.02)", tint: "linear-gradient(180deg,rgba(150,60,200,.5),rgba(255,150,60,.55))" },
+  beach: { f: "contrast(1.05) saturate(1.04) brightness(1.02)", tint: "linear-gradient(180deg,rgba(40,120,255,.4),rgba(255,180,90,.5))" },
+  winter: { f: "contrast(1.05) saturate(1.04) brightness(1.02)", tint: "linear-gradient(180deg,rgba(60,110,255,.5),rgba(170,220,255,.4))" },
+  candy: { f: "contrast(1.05) saturate(1.04) brightness(1.02)", tint: "linear-gradient(180deg,rgba(255,90,200,.45),rgba(255,200,120,.45))" },
+  sky: { f: "contrast(1.05) saturate(1.04) brightness(1.02)", tint: "linear-gradient(180deg,rgba(255,220,150,.45),rgba(90,120,255,.45))" },
+  arena: { f: "contrast(1.05) saturate(1.04) brightness(1.02)", tint: "linear-gradient(180deg,rgba(255,120,60,.45),rgba(60,40,200,.55))" },
+  night: { f: "contrast(1.05) saturate(1.04) brightness(1.02)", tint: "linear-gradient(180deg,rgba(40,90,200,.5),rgba(200,60,160,.45))" },
+  park: { f: "contrast(1.05) saturate(1.04) brightness(1.02)", tint: "linear-gradient(180deg,rgba(80,60,200,.35),rgba(255,140,90,.35))" }
 };
 const glowCache = {};
 function glowSprite(rgb) {
@@ -2839,6 +2840,18 @@ function softDot(c, x, y, s, col, a = 1) {
   c.globalAlpha = a; c.fillStyle = col; c.beginPath(); c.arc(x + s / 2, y + s / 2, r, 0, 6.283); c.fill();
   if (col[0] === "#") { c.globalCompositeOperation = "lighter"; c.globalAlpha = a * .5; c.drawImage(glowSprite(rgbOf(col)), x + s / 2 - r * 3, y + s / 2 - r * 3, r * 6, r * 6); c.globalCompositeOperation = "source-over"; }
   c.globalAlpha = 1;
+}
+
+// Дальний план: мягкий (как вне фокуса) и подёрнутый дымкой цвета неба — так сцена получает глубину
+function hazeLayer(img, col, amt, soft) {
+  const w = img.width, h = img.height, c = hqCanvas(w, h), x = c.getContext("2d");
+  if (soft > 1) {
+    const s = document.createElement("canvas"); s.width = Math.max(1, Math.round(w / soft)); s.height = Math.max(1, Math.round(h / soft));
+    const sx = s.getContext("2d"); sx.imageSmoothingEnabled = true; sx.imageSmoothingQuality = "high"; sx.drawImage(img, 0, 0, s.width, s.height);
+    x.imageSmoothingEnabled = true; x.imageSmoothingQuality = "high"; x.drawImage(s, 0, 0, w, h);
+  } else x.drawImage(img, 0, 0);
+  x.globalCompositeOperation = "source-atop"; x.globalAlpha = amt; x.fillStyle = col; x.fillRect(0, 0, w, h);
+  return c;
 }
 
 /* ====== Вкусная битва ====== */
@@ -4645,7 +4658,7 @@ const LOCS = [
     ground: { top: "#9A6442", surf: "#6E4129", seam: "#3A2116", low: "#FFB3C7", sprinkle: true } }
 ];
 function buildLoc(L, W, H, G0) {
-  const far = L.far(), near = L.near();
+  const far0 = L.far(), far = hazeLayer(far0, L.sky[2], .38, 2.2), near = hazeLayer(L.near(), L.sky[2], .1, 1);
   return { far, near, sky: skyCanvas(L, W, H, G0, G0 - far.height + 14) };
 }
 /* --- Связки препятствий. seq: [роль, мин. кадров после предыдущего, макс.]; w: вес в начале и на большой дистанции.
@@ -5409,7 +5422,7 @@ const Tower = {
       pell(x, cx, cy, 16, 16, "#E8A65A"); pell(x, cx - 5, cy - 5, 4, 4, "#F2C27A"); x.fillStyle = "#C9A0F0"; x.fillRect(cx - 26, cy, 52, 2);
       pell(x, Math.floor(this.W * .2), 330, 6, 6, "#7AD0FF"); pell(x, Math.floor(this.W * .2) - 2, 328, 2, 2, "#CFEFFF");
     }
-    return (this.decor[i] = c);
+    return (this.decor[i] = hazeLayer(c, th.sky[1], .25, 2.5));
   },
   drawTheme(c, i, a) {
     const th = TOWER_THEMES[i], W = this.W, H = this.H;
@@ -5724,7 +5737,7 @@ const Surv = {
     this.weapons = { arrow: { lvl: 1, cd: 30 } }; this.stats = {};
     this.t = 0; this.kills = 0; this.lvl = 1; this.xp = 0; this.need = this.xpNeed(1); this.rerolls = 2; this.pending = 0;
     this.spawnT = 0; this.bossOn = false; this.boss = null; this.shake = 0; this.banner = null; this.paused = false; this.choosing = false; this.won = false;
-    this.stage = 0; this.st = 0; this.ev = {}; this.waves = [];
+    this.stage = 0; this.st = 0; this.ev = {}; this.waves = []; this.strikes = []; this.still = 0; this.nextStrike = 240; this.stormHint = false;
     this.hud(); this.inv();
   },
   start() {
@@ -5839,7 +5852,7 @@ const Surv = {
     const crit = Math.random() < this.L.crit;
     dmg = Math.round(dmg * this.L.dmgMul * (crit ? 2 : 1));
     e.hp -= dmg; e.flash = 4;
-    if (kx || ky) { const k = e.type === "boss" ? .05 : e.type === "storm" || e.elite ? .3 : 1; e.x += kx * k; e.y += ky * k; }
+    if (kx || ky) { const k = (e.type === "boss" ? .05 : e.type === "storm" || e.elite || e.type === "brocc" || e.type === "ghost" ? .3 : 1) / (1 + this.stage * .35); e.x += kx * k; e.y += ky * k; }
     if (this.texts.length < 24 || crit) this.texts.push({ s: String(dmg), x: e.x + rand(-3, 3), y: e.y - e.r - 2, age: 0, life: 28, col: crit ? "#FFD23F" : null });
     if (e.hp <= 0) this.kill(e);
   },
@@ -5957,7 +5970,7 @@ const Surv = {
         for (const e of this.en) {
           if ((e.hitCd.bubble || 0) > this.t) continue;
           if ((e.x - bx) ** 2 + (e.y - by) ** 2 < (e.r + 4) ** 2) {
-            e.hitCd.bubble = this.t + 22; this.hit(e, 4 + lv * 1.5, Math.cos(a) * 3, Math.sin(a) * 3);
+            e.hitCd.bubble = this.t + 22; this.hit(e, 4 + lv * 1.5, Math.cos(a) * 1.5, Math.sin(a) * 1.5);
             if (b.evo && (b.heal = (b.heal || 0) + 1) % 6 === 0 && L.hp < L.maxHp) L.hp++;
           }
         }
@@ -5969,13 +5982,13 @@ const Surv = {
       if (this.t % 4 === 0) { const a = rand(0, 6.283), r = rand(0, f.R); this.part(L.x + Math.cos(a) * r, L.y + Math.sin(a) * r * .7, 0, -.2, pick(["#FFFFFF", "#BFE3FF"]), 26, 1); }
     }
     if (W.wok) {
-      const k = W.wok, lv = k.lvl, n = (k.evo ? 2 : 1) + (lv >= 5 ? 1 : 0), R = (12 + lv * 2) * L.area * (k.evo ? 1.5 : 1);
+      const k = W.wok, lv = k.lvl, n = k.evo ? 2 : 1, R = (10 + lv * 1.5) * L.area * (k.evo ? 1.3 : 1);
       while (this.woks.length < n) this.woks.push({ ang: rand(0, 6.283), spin: 0 });
       for (const wk of this.woks) {
         wk.ang += .028; wk.spin += .3;
-        const rr = 46 + Math.sin(this.t * .02 + wk.ang) * 22;
+        const rr = 58 + Math.sin(this.t * .02 + wk.ang) * 22; // вихрь гуляет поодаль и не закрывает Леру кольцом
         wk.x = L.x + Math.cos(wk.ang) * rr; wk.y = L.y + Math.sin(wk.ang * 1.3) * rr * .75; wk.R = R;
-        if (this.t % 12 === 0) for (const e of this.en) { const dx = wk.x - e.x, dy = wk.y - e.y, d = Math.hypot(dx, dy); if (d < R + e.r) this.hit(e, 4 + lv * 2, dx / (d || 1) * 2, dy / (d || 1) * 2); }
+        if (this.t % 14 === 0) for (const e of this.en) if ((wk.x - e.x) ** 2 + (wk.y - e.y) ** 2 < (R + e.r) ** 2) this.hit(e, 3 + lv * 1.6);
       }
     }
     if (W.crab) {
@@ -6074,6 +6087,7 @@ const Surv = {
     if (K.a || K.arrowleft || K.ф) mx = -1; if (K.d || K.arrowright || K.в) mx = 1; if (K.w || K.arrowup || K.ц) my = -1; if (K.s || K.arrowdown || K.ы) my = 1;
     if (Math.hypot(mx, my) > 1) { const m = Math.hypot(mx, my); mx /= m; my /= m; }
     L.x += mx * L.speed; L.y += my * L.speed;
+    this.still = mx || my ? 0 : this.still + 1;
     if (mx || my) { L.dx = mx; L.dy = my; if (Math.abs(mx) > .1) L.f = mx > 0 ? 1 : -1; L.state = "run"; }
     else L.state = "idle";
     L.t++; if (L.inv > 0) L.inv--; if (L.flash > 0) L.flash--;
@@ -6085,7 +6099,7 @@ const Surv = {
       if (e.flash > 0) e.flash--;
       if (e.frost > 0) e.frost--;
       const dx = L.x - e.x, dy = L.y - e.y, d = Math.hypot(dx, dy) || 1;
-      let sp = e.sp * (e.slow > 0 ? (this.weapons.frost && this.weapons.frost.evo && e.frost > 0 ? .15 : .45) : 1); if (e.slow > 0) e.slow--;
+      let sp = e.sp * (e.slow > 0 ? (this.weapons.frost && this.weapons.frost.evo && e.frost > 0 ? .3 : .5) : 1); if (e.slow > 0) e.slow--;
       if (e.type === "zap") { if (d < 95) sp = -sp * .7; else if (d < 120) sp = 0; if (--e.shootT <= 0) { e.shootT = 170; this.foeShot(e.x, e.y, Math.atan2(dy, dx), 2); } }
       if (e.type === "boss" && d > 150) sp *= 2.4; // от босса не убежать
       if (e.charge > 0) { e.charge--; e.x += e.cvx; e.y += e.cvy; }
@@ -6137,6 +6151,23 @@ const Surv = {
       if (Math.abs(dd - w.r) < 7 && L.inv <= 0 && this.hurt(w.dmg)) return;
     }
     this.waves = this.waves.filter(w => w.r < w.max);
+    // Гроза: со 2-й ночи молнии бьют туда, где стоит Лера. Красный круг — секунда, чтобы уйти.
+    // Кто стоит на месте дольше 2,5 с, получает молнии чаще и уже с 1-й ночи.
+    const afk = this.still > 150;
+    if ((this.stage >= 1 || afk) && --this.nextStrike <= 0) {
+      this.nextStrike = afk ? 75 : Math.max(120, 270 - this.stage * 35);
+      const n = afk ? 2 : this.stage >= 3 ? 2 : 1;
+      for (let i = 0; i < n; i++) { const a = rand(0, 6.283), off = i ? rand(26, 60) : 0; this.strikes.push({ x: L.x + Math.cos(a) * off, y: L.y + Math.sin(a) * off * .7, t: 0, T: 62, R: 21, dmg: 18 + this.stage * 6 }); }
+      if (!this.stormHint) { this.stormHint = true; this.banner = { text: "ГРОЗА!", sub: "КРАСНЫЙ КРУГ — БЕГИ", life: 110 }; }
+    }
+    for (const k of this.strikes) {
+      if (++k.t === k.T) {
+        SFX.bump(); shakeSv(this, 4);
+        this.blast(k.x, k.y, k.R + 6, 30 + this.stage * 10, ["#FFF6B0", "#FFD23F", "#FFFFFF"]);
+        if ((L.x - k.x) ** 2 + ((L.y - k.y) / .7) ** 2 < (k.R + 4) ** 2 && this.hurt(k.dmg)) return;
+      }
+    }
+    this.strikes = this.strikes.filter(k => k.t < k.T + 14);
     for (const p of this.puddles) {
       p.life--;
       if (p.life % 12 === 0) for (const e of this.en) if ((e.x - p.x) ** 2 + (e.y - p.y) ** 2 < (p.r + e.r) ** 2) { e.slow = 20; this.hit(e, p.dmg); }
@@ -6260,6 +6291,18 @@ const Surv = {
       c.globalAlpha = .16 + .04 * Math.sin(T * .1); pell(c, L.x, L.y, Math.round(R), Math.round(R * .7), "#BFE3FF");
       c.globalAlpha = .3; c.strokeStyle = "#E6F4FF"; c.lineWidth = 1; c.beginPath(); c.ellipse(L.x, L.y, R, R * .7, 0, 0, 6.283); c.stroke(); c.globalAlpha = 1;
     }
+    for (const k of this.strikes) {
+      if (k.t < k.T) {
+        const p = k.t / k.T;
+        c.globalAlpha = .25 + .2 * Math.sin(k.t * .5); c.fillStyle = "#FF4D6E"; c.beginPath(); c.ellipse(k.x, k.y, k.R * p, k.R * p * .7, 0, 0, 6.283); c.fill();
+        c.globalAlpha = .85; c.strokeStyle = "#FF6F8A"; c.lineWidth = 1.4; c.beginPath(); c.ellipse(k.x, k.y, k.R, k.R * .7, 0, 0, 6.283); c.stroke();
+      } else {
+        const a = 1 - (k.t - k.T) / 14; c.globalAlpha = a; c.strokeStyle = "#FFFFFF"; c.lineWidth = 2.4; c.lineJoin = "round";
+        c.beginPath(); let yy = k.y - 220, xx = k.x + 8; c.moveTo(xx, yy); while (yy < k.y) { yy += 22; xx = k.x + ((yy * 37) % 13) - 6; c.lineTo(xx, Math.min(yy, k.y)); } c.stroke();
+        c.strokeStyle = "#FFE27A"; c.lineWidth = 1; c.stroke();
+      }
+    }
+    c.globalAlpha = 1;
     for (const w of this.waves) { c.globalAlpha = 1 - w.r / w.max; c.strokeStyle = "#FF8A3D"; c.lineWidth = 4; c.beginPath(); c.ellipse(w.x, w.y, w.r, w.r * .7, 0, 0, 6.283); c.stroke(); }
     c.globalAlpha = 1;
     for (const p of this.puddles) { c.globalAlpha = Math.min(1, p.life / 30); pell(c, p.x, p.y, Math.round(p.r), Math.round(p.r * .55), "#4E2C1B"); pell(c, p.x - 2, p.y - 1, Math.round(p.r * .7), Math.round(p.r * .35), "#6E4129"); px(c, p.x - p.r * .4, p.y - 2, 3, 1, "#9A6442"); }
@@ -6383,6 +6426,7 @@ const Surv = {
       x.fillStyle = "rgba(255,255,255,.75)"; x.shadowColor = "rgba(255,180,220,.9)"; x.shadowBlur = 10;
       x.beginPath(); x.arc(j.ox + dx * m, j.oy + dy * m, 8, 0, 6.283); x.fill(); x.restore();
     }
+    for (const k of this.strikes) if (k.t >= k.T) Post.glow(h, k.x, k.y - 20, 60, "255,240,190", (1 - (k.t - k.T) / 14) * .8); else Post.glow(h, k.x, k.y, k.R * 1.6, "255,80,110", .18);
     for (const w of this.waves) Post.glow(h, w.x, w.y, w.r * 1.1, "255,140,60", .25 * (1 - w.r / w.max));
     for (const e of this.en) if (e.elite) Post.glow(h, e.x, e.y - e.r, e.r * 2.2, "255,210,63", .3);
     if (this.bossOn && this.boss && !this.boss.dead) Post.text(h, SV_BOSSES[this.boss.bk].name, W / 2 + cx, 29 + cy, 6, { cx, cy, weight: 800, cols: ["#FFFFFF", "#D9C8FF"], glow: "rgba(183,156,255,.9)" });
