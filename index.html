@@ -17,7 +17,7 @@
 <meta name="theme-color" content="#12152E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Nunito:wght@500;700;800&family=Press+Start+2P&family=Unbounded:wght@500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Nunito:wght@500;700;800&family=Press+Start+2P&family=Unbounded:wght@500;700;900&family=Manrope:wght@500;700;800&family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
 <style>
 /* Layout: player bar on top, one full-screen scene below it over a pixel night sky; text in a 480px column, games scale a low-res pixel canvas */
 :root{
@@ -44,8 +44,6 @@ img.px,.px img,.p,canvas.px{image-rendering:auto}
 
 #app{position:relative;height:100%;overflow:hidden;display:flex;flex-direction:column;background:linear-gradient(180deg,var(--sky-top) 0%,var(--sky-mid) 58%,var(--sky-low) 100%)}
 #stars,#fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-#starsHi{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-#stars{filter:blur(1.5px)}
 #fx{z-index:15}
 #area{position:relative;flex:1;min-height:0}
 
@@ -598,6 +596,36 @@ body{-webkit-font-smoothing:antialiased}
 .post-grain,.grain-all{background-image:var(--grain);background-size:128px 128px;opacity:.07;mix-blend-mode:overlay;animation:grain .5s steps(5) infinite}
 .grain-all{position:fixed;inset:-60px;z-index:14;pointer-events:none;opacity:.045}
 @keyframes grain{0%{background-position:0 0}20%{background-position:-37px 21px}40%{background-position:53px -14px}60%{background-position:-12px -48px}80%{background-position:27px 39px}}
+
+/* ====== Графика 4.0: спокойная кинематографичная ночь ====== */
+:root{--font-body:"Manrope",system-ui,-apple-system,sans-serif;--font-pixel:"Manrope",system-ui,-apple-system,sans-serif;--font-display:"Cormorant Garamond",Georgia,serif;
+  --ink:#F3ECE2;--muted:#B7B2CC;--gold:#F4D69A;--pink:#F0A6B8;--sky-top:#0E1430}
+body,#app{background:#0E1430}
+.menu-title{margin:8px 0 0;font:700 clamp(46px,13vw,72px)/.95 var(--font-display);letter-spacing:-.01em;color:var(--ink);text-shadow:0 0 34px rgba(244,214,154,.28)}
+.menu-sub{margin:10px 0 4px;font:500 16px/1.4 var(--font-body);color:var(--muted)}
+.pixel-title{font-family:var(--font-display);font-weight:700;letter-spacing:-.005em;line-height:1.05;background:none;-webkit-background-clip:border-box;background-clip:border-box;color:var(--ink);filter:none;text-shadow:0 0 30px rgba(244,214,154,.22)}
+.pixel-title .name{background:none;-webkit-background-clip:border-box;background-clip:border-box;color:var(--ink);font-size:1.15em}
+.panel h2,.pixel-h2{font-family:var(--font-display);font-weight:700;font-size:26px;letter-spacing:0;color:var(--ink);text-shadow:none}
+.lvl{background:rgba(22,26,62,.58);border:1px solid rgba(243,236,226,.09);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);gap:10px;padding:12px}
+.lvl::after{display:none}
+.lvl.fight,.lvl.wardrobe{background:rgba(22,26,62,.58)}
+.lvl.secret{background:rgba(22,26,62,.58);border-color:rgba(244,214,154,.38);box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.lvl .lv-ic,.lvl.wide .lv-ic{width:100%;height:auto;aspect-ratio:16/10;object-fit:cover;border-radius:10px;filter:none;image-rendering:auto}
+.lvl.wide .lv-ic{width:136px;flex:none}
+.lvl .lv-ic.locked{filter:saturate(.4) brightness(.75)}
+.lvl h3{font:700 22px/1.1 var(--font-display);color:var(--ink);text-shadow:none}
+.lvl p{font-size:14px;color:var(--muted)}
+.lvl .lv-stat{font:700 12px/1.3 var(--font-body);color:var(--gold);text-transform:lowercase}
+.lvl .lv-stat::first-letter{text-transform:uppercase}
+.lvl .badge{top:8px;right:8px;padding:4px 8px;background:var(--pink);color:#2A1530;box-shadow:none;font:800 11px/1 var(--font-body);text-transform:lowercase}
+.lvl.letter-card{background:linear-gradient(160deg,#FFF6E4,#F3D9C2)}
+.lvl.letter-card h3{color:#8E2A3E}
+.hud-row{font:700 13px/1.4 var(--font-body);letter-spacing:.01em}
+.hud-row b{font:800 15px/1 var(--font-body);color:var(--gold);text-shadow:none}
+.btn{font:800 15px/1.2 var(--font-body);letter-spacing:.01em;text-shadow:none}
+.btn.sm{font-size:13px}
+.eyebrow{font:700 12px/1.4 var(--font-body);letter-spacing:.04em;text-transform:none}
+.grain-all{opacity:.03}
 /* удобство касаний: цели не меньше 44 px */
 .diff button{min-height:44px}
 .lvl.wide .badge ~ .lv-txt h3{padding-right:72px}
@@ -696,8 +724,8 @@ body{-webkit-font-smoothing:antialiased}
     <section class="scene" id="s-menu" hidden>
       <div class="col">
         <div>
-          <p class="eyebrow">Мир Леры</p>
-          <h1 class="pixel-title">ВЫБЕРИ<br><span class="name">УРОВЕНЬ</span></h1>
+          <h1 class="menu-title">Мир Леры</h1>
+          <p class="menu-sub">Куда отправимся сегодня?</p>
         </div>
         <div class="levels" id="levels"></div>
       </div>
@@ -706,7 +734,7 @@ body{-webkit-font-smoothing:antialiased}
     <!-- Вкусный дождь -->
     <section class="scene fixed" id="s-catch" hidden>
       <header class="hud">
-        <div class="hud-row"><span>ВКУСНЫЙ ДОЖДЬ</span><span><b id="score">0</b>/<span id="goal">30</span></span></div>
+        <div class="hud-row"><span>Вкусный дождь</span><span><b id="score">0</b>/<span id="goal">30</span></span></div>
         <div class="bar"><div class="bar-fill" id="scoreBar"></div></div>
       </header>
       <div class="stage" id="catchStage">
@@ -741,7 +769,7 @@ body{-webkit-font-smoothing:antialiased}
     <!-- Танцпол -->
     <section class="scene fixed" id="s-dance" hidden>
       <header class="hud">
-        <div class="hud-row"><span>ТАНЦПОЛ</span><span><b id="moves">0</b>/8</span></div>
+        <div class="hud-row"><span>Танцпол</span><span><b id="moves">0</b>/8</span></div>
         <div class="bar"><div class="bar-fill" id="danceBar"></div></div>
       </header>
       <div class="dance-stage" id="danceStage">
@@ -778,7 +806,7 @@ body{-webkit-font-smoothing:antialiased}
     <!-- Звёзды -->
     <section class="scene" id="s-stars" hidden>
       <header class="hud">
-        <div class="hud-row"><span>ЗВЁЗДЫ</span><span><b id="starsGot">0</b>/<span id="starsAll">7</span></span></div>
+        <div class="hud-row"><span>Звёзды</span><span><b id="starsGot">0</b>/<span id="starsAll">7</span></span></div>
         <div class="bar"><div class="bar-fill" id="starsBar"></div></div>
       </header>
       <div class="col center">
@@ -798,7 +826,7 @@ body{-webkit-font-smoothing:antialiased}
     <!-- Крылатый забег -->
     <section class="scene fixed" id="s-runner" hidden>
       <header class="hud">
-        <div class="hud-row"><span>КРЫЛАТЫЙ ЗАБЕГ</span><span><b id="rDist">0</b> м · рекорд <b id="rBest">0</b></span></div>
+        <div class="hud-row"><span>Крылатый забег</span><span><b id="rDist">0</b> м · рекорд <b id="rBest">0</b></span></div>
       </header>
       <div class="rstage" id="rStage">
         <div class="pix-box" id="rBox"><div class="pix-wrap" id="rWrap"><canvas class="px" id="rcv" width="320" height="200"></canvas></div></div>
@@ -888,7 +916,7 @@ body{-webkit-font-smoothing:antialiased}
     <!-- Небесный подъём -->
     <section class="scene fixed" id="s-tower" hidden>
       <header class="hud">
-        <div class="hud-row"><span>НЕБЕСНЫЙ ПОДЪЁМ</span><span><b id="tHeight">0</b> м · рекорд <b id="tBest">0</b></span></div>
+        <div class="hud-row"><span>Небесный подъём</span><span><b id="tHeight">0</b> м · рекорд <b id="tBest">0</b></span></div>
       </header>
       <div class="rstage" id="tStage">
         <div class="pix-box" id="tBox"><div class="pix-wrap" id="tWrap"><canvas class="px" id="tcv" width="180" height="300"></canvas></div></div>
@@ -915,7 +943,7 @@ body{-webkit-font-smoothing:antialiased}
     <!-- Атака хмуриков -->
     <section class="scene fixed" id="s-surv" hidden>
       <header class="hud">
-        <div class="hud-row"><span>НОЧЬ <b id="svStage">1</b>/5</span><span>⏱ <b id="svTime">0:00</b></span><span>УР <b id="svLvl">1</b></span><span>✖ <b id="svKills">0</b></span></div>
+        <div class="hud-row"><span>Ночь <b id="svStage">1</b>/5</span><span>⏱ <b id="svTime">0:00</b></span><span>УР <b id="svLvl">1</b></span><span>✖ <b id="svKills">0</b></span></div>
         <div class="sv-bars"><div class="sv-bar hp"><i id="svHp"></i></div><div class="sv-bar xp"><i id="svXp"></i></div></div>
         <div class="sv-inv" id="svInv"></div>
       </header>
@@ -963,7 +991,7 @@ body{-webkit-font-smoothing:antialiased}
 
     <!-- Гардероб Леры -->
     <section class="scene" id="s-wardrobe" hidden>
-      <header class="hud"><div class="hud-row"><span>ГАРДЕРОБ ЛЕРЫ</span><span>открыто <b id="wCount">1</b></span></div></header>
+      <header class="hud"><div class="hud-row"><span>Гардероб Леры</span><span>открыто <b id="wCount">1</b></span></div></header>
       <div class="col">
         <canvas class="w-prev" id="wcv" aria-label="Лера в выбранном образе"></canvas>
         <div id="wLists" class="w-lists"></div>
@@ -973,7 +1001,7 @@ body{-webkit-font-smoothing:antialiased}
 
     <!-- Секретный уровень -->
     <section class="scene fixed" id="s-roof" hidden>
-      <header class="hud"><div class="hud-row"><span>КРЫША ПОД ЗВЁЗДАМИ</span><span>желаний <b id="roofCount">0</b>/5</span></div></header>
+      <header class="hud"><div class="hud-row"><span>Крыша под звёздами</span><span>желаний <b id="roofCount">0</b>/5</span></div></header>
       <div class="rstage" id="roofStage">
         <div class="pix-box" id="roofBox"><div class="pix-wrap" id="roofWrap"><canvas class="px" id="roofcv" width="300" height="300"></canvas></div></div>
         <p class="rhint">Когда по небу летит звезда — нажми на экран и загадай желание.</p>
@@ -1291,227 +1319,88 @@ function icon(name) {
   return (urlCache[name] = c.toDataURL());
 }
 
-/* ====== Живое пиксельное небо на фоне всего мира ====== */
-// Рисуется в низком разрешении (1 пиксель = 3 точки экрана): медленно меняющиеся цвета неба, северное сияние,
-// звёзды на трёх глубинах, луна, падающие звёзды, облака, город с огоньками и сердечки, которые всплывают снизу.
-const SKY_PALS = [
-  ["#0E1030", "#27205A", "#6B3456"],
-  ["#0A1536", "#1D3A6C", "#55407E"],
-  ["#160F3C", "#4A2368", "#B0476A"],
-  ["#081A2E", "#1B3B5A", "#3E2F6B"]
-];
-const hexRgb = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
-const SKY_RGB = SKY_PALS.map(p => p.map(hexRgb));
-const mixRgb = (a, b, k) => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
-const rgbStr = (c, a = 1) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`;
+/* ====== Фон всего мира: спокойная ночь ======
+   Глубокий градиент, медленная туманность, тонкие звёзды без вспышек и луна с мягким ореолом.
+   Двигается почти незаметно; раз в полминуты — одна падающая звезда. */
 const Stars = {
-  P: 3, t: 0, last: 0, acc: 0,
+  t: 0, last: 0,
   init() {
     this.c = $("#stars"); this.x = this.c.getContext("2d");
+    this.neb = document.createElement("canvas"); this.nx = this.neb.getContext("2d");
     this.resize();
     addEventListener("resize", () => this.resize());
     requestAnimationFrame(ts => this.loop(ts));
   },
   resize() {
-    const cw = this.c.clientWidth || innerWidth, ch = this.c.clientHeight || innerHeight;
-    this.P = cw < 700 ? 3 : 4;
-    this.w = Math.ceil(cw / this.P); this.h = Math.ceil(ch / this.P);
-    this.c.width = this.w; this.c.height = this.h;
-    const R = seededSky(5), w = this.w, h = this.h;
-    const n = Math.round(w * h / 55);
-    this.stars = Array.from({ length: n }, () => {
-      const z = R() < .6 ? 0 : R() < .75 ? 1 : 2;
-      return { x: R() * w, y: R() * h * .78, z, ph: R() * 6.28, sp: .02 + R() * .05, base: z === 0 ? .25 : .45, amp: z === 2 ? .55 : .35, col: R() < .15 ? "#FFD9A8" : R() < .25 ? "#BFD8FF" : "#FFF4E6" };
-    });
-    this.clouds = Array.from({ length: Math.max(3, Math.round(w / 70)) }, (_, i) => ({ img: cloudSprite(R, 26 + Math.floor(R() * 30)), x: R() * (w + 80) - 40, y: h * (.18 + R() * .42), v: .03 + R() * .07, a: .35 + R() * .35 }));
-    this.city = cityStrip(R, 256, Math.min(70, Math.round(h * .22)));
-    this.hills = hillStrip(R, 320, Math.min(48, Math.round(h * .16)));
-    this.parts = []; this.shoot = []; this.nextShoot = 120;
-    this.skyKey = ""; this.skyCv = document.createElement("canvas"); this.skyCv.width = 1; this.skyCv.height = h;
-    this.glow = moonGlow();
-    if (!this.hc) { this.hc = document.createElement("canvas"); this.hc.id = "starsHi"; this.c.after(this.hc); this.hx = this.hc.getContext("2d"); }
-    const hd = Math.min(window.devicePixelRatio || 1, 1.5);
-    this.hc.width = Math.round(cw * hd); this.hc.height = Math.round(ch * hd);
+    const d = Math.min(window.devicePixelRatio || 1, 1.5);
+    this.w = this.c.clientWidth || innerWidth; this.h = this.c.clientHeight || innerHeight; this.d = d;
+    this.c.width = Math.round(this.w * d); this.c.height = Math.round(this.h * d);
+    this.neb.width = Math.max(2, Math.round(this.w / 8)); this.neb.height = Math.max(2, Math.round(this.h / 8));
+    const R = seededSky(5), n = Math.round(this.w * this.h / 2600);
+    this.stars = Array.from({ length: n }, () => ({ x: R() * this.w, y: R() * this.h * .9, r: .35 + Math.pow(R(), 3) * .9, a: .25 + R() * .55, sp: .2 + R() * .6, ph: R() * 6.28, warm: R() < .2 }));
+    this.shoot = null; this.nextShoot = 600 + Math.random() * 600;
     this.draw();
   },
   loop(ts) {
     requestAnimationFrame(t => this.loop(t));
     if (document.hidden) { this.last = ts; return; }
-    const busy = ["catch", "runner", "tower", "fight", "surv", "dance"].includes(current);
-    const step = reduced ? 2000 : busy ? 100 : 33;
-    if (ts - this.last < step) return;
-    const dt = Math.min(6, (ts - this.last) / 33); this.last = ts;
-    this.update(dt); this.draw();
-  },
-  update(dt) {
+    const busy = ["catch", "runner", "tower", "fight", "surv", "dance", "roof"].includes(current);
+    if (ts - this.last < (reduced ? 1000 : busy ? 125 : 50)) return;
+    const dt = Math.min(5, (ts - this.last) / 50); this.last = ts;
     this.t += dt;
-    const w = this.w, h = this.h;
-    for (const s of this.stars) { s.x -= [.008, .02, .05][s.z] * dt; if (s.x < -2) s.x += w + 4; }
-    for (const c of this.clouds) { c.x -= c.v * dt; if (c.x < -c.img.width - 4) { c.x = w + Math.random() * 40; c.y = h * (.18 + Math.random() * .42); } }
-    if (!reduced && (this.nextShoot -= dt) <= 0) {
-      this.nextShoot = 100 + Math.random() * 180;
-      this.shoot.push({ x: w * (.3 + Math.random() * .8), y: h * Math.random() * .3, vx: -(1.6 + Math.random()), vy: .7 + Math.random() * .5, life: 0, max: 40 + Math.random() * 20 });
-    }
-    this.shoot = this.shoot.filter(s => { s.x += s.vx * dt; s.y += s.vy * dt; s.life += dt; return s.life < s.max; });
-    if (!reduced && this.parts.length < Math.max(8, w / 18) && Math.random() < .06 * dt) {
-      this.parts.push({ x: Math.random() * w, y: h + 4, vy: -(.15 + Math.random() * .2), ph: Math.random() * 6, k: Math.random() < .45 ? "h" : "s", life: 0 });
-    }
-    this.parts = this.parts.filter(p => { p.y += p.vy * dt; p.life += dt; return p.y > h * .3; });
+    if (!reduced && (this.nextShoot -= dt) <= 0) { this.nextShoot = 600 + Math.random() * 700; this.shoot = { x: this.w * (.35 + Math.random() * .6), y: this.h * Math.random() * .3, life: 0 }; }
+    if (this.shoot && (this.shoot.life += dt) > 22) this.shoot = null;
+    this.draw();
   },
-  skyGrad() {
-    // палитра неба плавно переходит по кругу за пару минут
-    const ph = (this.t / 30 / 120) % SKY_RGB.length, i = Math.floor(ph), k = ph - i, sm = k * k * (3 - 2 * k);
-    const a = SKY_RGB[i], b = SKY_RGB[(i + 1) % SKY_RGB.length];
-    const cols = [0, 1, 2].map(j => mixRgb(a[j], b[j], sm));
-    const key = cols.map(c => c.map(v => v | 0).join(",")).join("|") + this.h;
-    if (key !== this.skyKey) {
-      this.skyKey = key; this.cols = cols;
-      const x = this.skyCv.getContext("2d"), h = this.h, bands = 28;
-      for (let y = 0; y < h; y++) {
-        const f = y / h, q = Math.floor(f * bands) / bands, cc = q < .55 ? mixRgb(cols[0], cols[1], q / .55) : mixRgb(cols[1], cols[2], (q - .55) / .45);
-        x.fillStyle = rgbStr(cc); x.fillRect(0, y, 1, 1);
-      }
-    }
-    return this.skyCv;
+  // туманность в маленьком холсте; при растягивании сама становится мягкой
+  nebula() {
+    const x = this.nx, W = this.neb.width, H = this.neb.height, t = this.t * .002;
+    const g = x.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, "#0E1430"); g.addColorStop(.55, "#1A1F45"); g.addColorStop(1, "#3A2448");
+    x.globalCompositeOperation = "source-over"; x.fillStyle = g; x.fillRect(0, 0, W, H);
+    x.globalCompositeOperation = "lighter";
+    [[.2, .3, .55, "120,90,200", .22, 0], [.8, .55, .5, "240,140,170", .14, 2], [.45, .85, .6, "90,140,220", .12, 4], [.85, .12, .35, "244,214,154", .1, 1]].forEach(([cx, cy, r, rgb, a, ph]) => {
+      const px0 = (cx + Math.sin(t + ph) * .04) * W, py0 = (cy + Math.cos(t * .8 + ph) * .03) * H, rr = r * Math.max(W, H);
+      const gg = x.createRadialGradient(px0, py0, 0, px0, py0, rr); gg.addColorStop(0, `rgba(${rgb},${a})`); gg.addColorStop(1, `rgba(${rgb},0)`);
+      x.fillStyle = gg; x.fillRect(0, 0, W, H);
+    });
+    x.globalCompositeOperation = "source-over";
   },
   draw() {
     const c = this.x, w = this.w, h = this.h, t = this.t;
     if (!w) return;
-    c.imageSmoothingEnabled = true;
-    c.drawImage(this.skyGrad(), 0, 0, w, h);
-    // северное сияние
-    c.globalCompositeOperation = "lighter";
-    for (let r = 0; r < 2; r++) {
-      const col = r ? [255, 94, 170] : [60, 230, 190], base = h * (r ? .2 : .13);
-      for (let x = 0; x < w; x += 2) {
-        const y = base + Math.sin(x * .025 + t * .012 + r * 2) * h * .05 + Math.sin(x * .009 - t * .007) * h * .04;
-        const a = (.06 + .05 * Math.sin(x * .04 + t * .02 + r)) * (r ? .8 : 1);
-        if (a <= 0) continue;
-        const len = h * (.09 + .04 * Math.sin(x * .03 + t * .015));
-        for (let k = 0; k < 4; k++) { c.fillStyle = rgbStr(col, a * (1 - k / 4)); c.fillRect(x, Math.round(y + k * len / 4), 2, Math.ceil(len / 4)); }
-      }
-    }
-    c.globalCompositeOperation = "source-over";
-    // облака, холмы и город — дальний план, он мягко размыт
-    for (const cl of this.clouds) { c.globalAlpha = cl.a; c.drawImage(cl.img, Math.round(cl.x), Math.round(cl.y)); }
-    c.globalAlpha = 1;
-    const hy = h - this.hills.height, cy = h - this.city.height;
-    tileStrip(c, this.hills, (t * .03) % this.hills.width, hy, w);
-    tileStrip(c, this.city, (t * .08) % this.city.width, cy, w);
-    const win = this.city.wins, off = (t * .08) % this.city.width;
-    for (let i = 0; i < win.length; i++) {
-      const wd = win[i];
-      if (Math.sin(t * .01 * wd.sp + wd.ph) <= -.35) continue;
-      for (let rx = wd.x - off; rx < w; rx += this.city.width) if (rx >= -1) { c.fillStyle = wd.col; c.fillRect(Math.round(rx), cy + wd.y, 1, 1); }
-    }
-    // тёплый свет города снизу
-    const hg = c.createLinearGradient(0, h * .7, 0, h);
-    hg.addColorStop(0, "rgba(255,120,150,0)"); hg.addColorStop(1, "rgba(255,120,150,.18)");
-    c.fillStyle = hg; c.fillRect(0, h * .7, w, h * .3);
-    this.drawHi();
-  },
-  // чёткий слой в полном разрешении: звёзды со свечением, луна, падающие звёзды, сердечки
-  drawHi() {
-    const hc = this.hc, x = this.hx, P = this.P, t = this.t, w = this.w, h = this.h;
-    const k = hc.width / (w * P) * P;
-    x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, hc.width, hc.height);
-    x.setTransform(k, 0, 0, k, 0, 0);
-    x.globalCompositeOperation = "lighter";
+    c.setTransform(1, 0, 0, 1, 0, 0);
+    if (t % 3 < 1.01 || !this.nebDone) { this.nebula(); this.nebDone = true; }
+    c.imageSmoothingEnabled = true; c.imageSmoothingQuality = "high";
+    c.drawImage(this.neb, 0, 0, this.c.width, this.c.height);
+    c.setTransform(this.d, 0, 0, this.d, 0, 0);
+    // звёзды: мелкие, тихо дышат, без лучей
     for (const s of this.stars) {
-      const a = Math.max(0, Math.min(1, s.base + s.amp * Math.sin(t * s.sp + s.ph)));
-      const r = s.z === 2 ? 1.1 : s.z === 1 ? .7 : .45;
-      x.globalAlpha = a; x.fillStyle = s.col;
-      x.beginPath(); x.arc(s.x, s.y, r, 0, 6.283); x.fill();
-      if (s.z > 0) { x.globalAlpha = a * (s.z === 2 ? .7 : .35); x.drawImage(glowSprite(s.col === "#FFD9A8" ? "255,217,168" : s.col === "#BFD8FF" ? "191,216,255" : "255,244,230"), s.x - 4 * s.z, s.y - 4 * s.z, 8 * s.z, 8 * s.z); }
-      if (s.z === 2 && a > .85) {
-        x.globalAlpha = (a - .85) * 4; x.strokeStyle = "#FFFFFF"; x.lineWidth = .25;
-        x.beginPath(); x.moveTo(s.x - 4, s.y); x.lineTo(s.x + 4, s.y); x.moveTo(s.x, s.y - 4); x.lineTo(s.x, s.y + 4); x.stroke();
-      }
+      c.globalAlpha = s.a * (.75 + .25 * Math.sin(t * .03 * s.sp + s.ph));
+      c.fillStyle = s.warm ? "#F4D69A" : "#E9E6FF";
+      c.beginPath(); c.arc(s.x, s.y, s.r, 0, 6.283); c.fill();
     }
-    // луна
-    const mx = w * .82, my = h * .13 + Math.sin(t * .01) * 1.5;
-    x.globalAlpha = .55; x.drawImage(glowSprite("255,236,190"), mx - 34, my - 34, 68, 68);
-    x.globalAlpha = .3; x.drawImage(glowSprite("200,180,255"), mx - 70, my - 70, 140, 140);
-    x.globalCompositeOperation = "source-over"; x.globalAlpha = 1;
-    const mg = x.createRadialGradient(mx - 2, my - 2, 1, mx, my, 7);
-    mg.addColorStop(0, "#FFFBEA"); mg.addColorStop(.7, "#FFEFC0"); mg.addColorStop(1, "#E8D49A");
-    x.fillStyle = mg; x.beginPath(); x.arc(mx, my, 7, 0, 6.283); x.fill();
-    x.fillStyle = "rgba(200,180,120,.35)"; [[-2.5, -1.5, 1.6], [2.2, 2, 1.1], [-.5, 3, .8]].forEach(([dx, dy, r]) => { x.beginPath(); x.arc(mx + dx, my + dy, r, 0, 6.283); x.fill(); });
-    x.globalCompositeOperation = "lighter";
-    // падающие звёзды
-    for (const s of this.shoot) {
-      const kk = 1 - s.life / s.max, tx = s.x - s.vx * 12, ty = s.y - s.vy * 12;
-      const g = x.createLinearGradient(s.x, s.y, tx, ty);
-      g.addColorStop(0, `rgba(255,255,255,${kk})`); g.addColorStop(1, "rgba(255,220,170,0)");
-      x.strokeStyle = g; x.lineWidth = .8; x.globalAlpha = 1;
-      x.beginPath(); x.moveTo(s.x, s.y); x.lineTo(tx, ty); x.stroke();
-      x.globalAlpha = kk; x.drawImage(glowSprite("255,240,210"), s.x - 4, s.y - 4, 8, 8);
+    c.globalAlpha = 1;
+    // луна с ореолом — главный акцент фона
+    const mr = Math.min(42, Math.max(22, w * .05)), mx = w * .82, my = Math.max(70, h * .14), br = 1 + Math.sin(t * .01) * .03;
+    const halo = c.createRadialGradient(mx, my, mr * .8, mx, my, mr * 6 * br);
+    halo.addColorStop(0, "rgba(244,214,154,.22)"); halo.addColorStop(.35, "rgba(240,166,184,.07)"); halo.addColorStop(1, "rgba(240,166,184,0)");
+    c.fillStyle = halo; c.fillRect(mx - mr * 7, my - mr * 7, mr * 14, mr * 14);
+    const mg = c.createRadialGradient(mx - mr * .35, my - mr * .35, mr * .1, mx, my, mr);
+    mg.addColorStop(0, "#FFF9EC"); mg.addColorStop(.7, "#F6E3B8"); mg.addColorStop(1, "#D9C08C");
+    c.fillStyle = mg; c.beginPath(); c.arc(mx, my, mr, 0, 6.283); c.fill();
+    c.fillStyle = "rgba(170,140,90,.18)";
+    [[-.3, -.2, .22], [.25, .3, .16], [.05, -.45, .1], [-.15, .4, .12]].forEach(([a, b, r]) => { c.beginPath(); c.arc(mx + a * mr, my + b * mr, r * mr, 0, 6.283); c.fill(); });
+    // падающая звезда
+    const s = this.shoot;
+    if (s) {
+      const k = s.life / 22, x0 = s.x - k * 160, y0 = s.y + k * 70, a = Math.sin(k * Math.PI);
+      const sg = c.createLinearGradient(x0, y0, x0 + 70, y0 - 30); sg.addColorStop(0, `rgba(255,248,236,${a})`); sg.addColorStop(1, "rgba(255,248,236,0)");
+      c.strokeStyle = sg; c.lineWidth = 1.2; c.lineCap = "round"; c.beginPath(); c.moveTo(x0, y0); c.lineTo(x0 + 70, y0 - 30); c.stroke();
     }
-    // сердечки и искорки всплывают
-    for (const p of this.parts) {
-      const a = Math.min(1, p.life / 40) * Math.min(1, (p.y - h * .3) / (h * .25)) * .8, px0 = p.x + Math.sin(p.life * .03 + p.ph) * 4, py0 = p.y;
-      x.globalAlpha = a * .7; x.drawImage(glowSprite(p.k === "h" ? "255,90,150" : "255,220,140"), px0 - 6, py0 - 6, 12, 12);
-      x.globalAlpha = a;
-      if (p.k === "h") { x.fillStyle = "#FF8FB6"; x.beginPath(); x.moveTo(px0, py0 + 1.6); x.bezierCurveTo(px0 - 3, py0 - .5, px0 - 1.4, py0 - 2.6, px0, py0 - 1); x.bezierCurveTo(px0 + 1.4, py0 - 2.6, px0 + 3, py0 - .5, px0, py0 + 1.6); x.fill(); }
-      else { x.fillStyle = "#FFF1C0"; x.fillRect(px0 - .3, py0 - 1.5, .6, 3); x.fillRect(px0 - 1.5, py0 - .3, 3, .6); }
-    }
-    x.globalAlpha = 1; x.globalCompositeOperation = "source-over";
   }
 };
 function seededSky(seed) { let s = seed; return () => (s = (s * 16807) % 2147483647) / 2147483647; }
-function tileStrip(c, img, off, y, w) { for (let x = -Math.floor(off); x < w; x += img.width) c.drawImage(img, x, y); }
-function cloudSprite(R, wd) {
-  // мягкое облако из нескольких размытых шаров
-  const hgt = Math.ceil(wd * .5), cv = document.createElement("canvas"); cv.width = wd; cv.height = hgt;
-  const x = cv.getContext("2d");
-  for (let i = 0; i < 6; i++) {
-    const cx = wd * (.15 + i * .14), cy = hgt * (.58 + (R() - .5) * .2), r = hgt * (.3 + R() * .2);
-    const g = x.createRadialGradient(cx, cy - r * .3, 0, cx, cy, r);
-    g.addColorStop(0, "rgba(205,190,255,.9)"); g.addColorStop(.55, "rgba(140,120,210,.55)"); g.addColorStop(1, "rgba(90,70,160,0)");
-    x.fillStyle = g; x.beginPath(); x.arc(cx, cy, r, 0, 6.283); x.fill();
-  }
-  return cv;
-}
-function hillStrip(R, wd, hgt) {
-  const cv = document.createElement("canvas"); cv.width = wd; cv.height = hgt;
-  const x = cv.getContext("2d");
-  for (let i = 0; i < wd; i++) {
-    const y = Math.round(hgt * (.35 + .18 * Math.sin(i / wd * 6.283 * 2) + .1 * Math.sin(i / wd * 6.283 * 5 + 1)));
-    x.fillStyle = "#2A1F4E"; x.fillRect(i, y, 1, hgt - y); x.fillStyle = "#3B2D66"; x.fillRect(i, y, 1, 1);
-  }
-  return cv;
-}
-function cityStrip(R, wd, hgt) {
-  const cv = document.createElement("canvas"); cv.width = wd; cv.height = hgt;
-  const x = cv.getContext("2d"), wins = [];
-  let i = 0;
-  while (i < wd) {
-    const bw = 8 + Math.floor(R() * 14), bh = Math.floor(hgt * (.3 + R() * .62)), y = hgt - bh;
-    x.fillStyle = "#140F2E"; x.fillRect(i, y, Math.min(bw, wd - i), bh);
-    x.fillStyle = "#211A44"; x.fillRect(i, y, Math.min(bw, wd - i), 1);
-    if (R() < .3) { x.fillStyle = "#140F2E"; x.fillRect(i + Math.floor(bw / 2), y - 4, 1, 4); }
-    for (let wy = y + 3; wy < hgt - 2; wy += 3) for (let wx = i + 2; wx < Math.min(i + bw - 1, wd); wx += 3) if (R() < .35) wins.push({ x: wx, y: wy, ph: R() * 6.28, sp: .3 + R() * 1.4, col: R() < .8 ? "#FFD27A" : "#FF9FC0" });
-    i += bw + (R() < .3 ? 2 : 0);
-  }
-  cv.wins = wins;
-  return cv;
-}
-function moonGlow() {
-  const cv = document.createElement("canvas"); cv.width = cv.height = 48;
-  const x = cv.getContext("2d"), g = x.createRadialGradient(24, 24, 4, 24, 24, 24);
-  g.addColorStop(0, "rgba(255,240,200,.35)"); g.addColorStop(1, "rgba(255,240,200,0)");
-  x.fillStyle = g; x.fillRect(0, 0, 48, 48);
-  return cv;
-}
-function drawMoon(c, mx, my) {
-  const r = 7;
-  for (let y = -r; y <= r; y++) for (let x = -r; x <= r; x++) {
-    if (x * x + y * y > r * r) continue;
-    const shade = (x + 2) * (x + 2) + (y + 1) * (y + 1) > r * r * 1.2;
-    c.fillStyle = shade ? "#E8D8A0" : "#FFF1C1"; c.fillRect(mx + x, my + y, 1, 1);
-  }
-  c.fillStyle = "#E3D196"; c.fillRect(mx - 3, my - 2, 2, 2); c.fillRect(mx + 2, my + 2, 2, 1); c.fillRect(mx - 1, my + 3, 1, 1);
-}
 
 /* ====== Конфетти и салют поверх всего ====== */
 const FX = {
@@ -2450,6 +2339,7 @@ function applyLook() {
   Object.assign(LERA_S, o.c, { crown: !!o.crown, style: st.id, hc: hr.hc });
   // иконки с Лерой перерисуются в новом образе
   ["f_lera", "fw_lera", "fightCard", "survIc", "towerIc"].forEach(k => { delete urlCache[k]; });
+  Object.keys(urlCache).filter(k => k.startsWith("cover_")).forEach(k => { delete urlCache[k]; });
 }
 function drawHuman(c, RX, RY, f, P, F, ex, S) {
   const hip = [RX + P.bx * f, RY - S.hip + P.by];
@@ -2864,7 +2754,7 @@ const Post = {
     const x = h.x, k = h.k; x.save();
     x.setTransform(1, 0, 0, 1, 0, 0);
     const X = x0 * k - (o.cx || 0) * k, Y = y0 * k - (o.cy || 0) * k, px0 = size * k;
-    x.font = `${o.weight || 900} ${px0}px Unbounded, "Nunito", sans-serif`; x.textAlign = "center"; x.textBaseline = "middle";
+    x.font = `${o.weight || 900} ${px0}px Manrope, sans-serif`; x.textAlign = "center"; x.textBaseline = "middle";
     x.globalAlpha = o.a == null ? 1 : o.a;
     x.lineJoin = "round"; x.lineWidth = px0 * .22; x.strokeStyle = o.stroke || "rgba(20,10,40,.85)"; x.strokeText(s, X, Y);
     const g = x.createLinearGradient(0, Y - px0 / 2, 0, Y + px0 / 2);
@@ -3091,7 +2981,7 @@ const FIN_SPR = {};
 const heart3 = () => FIN_SPR.heart || (FIN_SPR.heart = paint(SPR.heart, 3));
 function hold(F, state, t) { F.state = state; F.t = t; F.ult = false; }
 function heartPt(k, cx, cy, s) { const a = k * Math.PI * 2; return [cx + 16 * Math.pow(Math.sin(a), 3) * s, cy - (13 * Math.cos(a) - 5 * Math.cos(2 * a) - 2 * Math.cos(3 * a) - Math.cos(4 * a)) * s]; }
-function finText(c, s, x, y, col) { c.font = '800 9px Unbounded, sans-serif'; c.textAlign = "center"; c.textBaseline = "middle"; c.fillStyle = OL; c.fillText(s, Math.round(x) + 1, Math.round(y) + 1); c.fillStyle = col; c.fillText(s, Math.round(x), Math.round(y)); }
+function finText(c, s, x, y, col) { c.font = '800 9px Manrope, sans-serif'; c.textAlign = "center"; c.textBaseline = "middle"; c.fillStyle = OL; c.fillText(s, Math.round(x) + 1, Math.round(y) + 1); c.fillStyle = col; c.fillText(s, Math.round(x), Math.round(y)); }
 const FIN = {
   kolya: { name: "Лазерное сердце", len: 220,
     step(f) {
@@ -3597,7 +3487,7 @@ function buildStage(W, H) {
   shelf(8, wx - 14, base + 62); shelf(wx + ww + 14, W - 8, base + 62);
   shelf(8, wx - 14, base + 36); shelf(wx + ww + 14, W - 8, base + 36);
   // неоновая вывеска
-  x.font = '800 9px Unbounded, sans-serif'; x.textBaseline = "top"; x.textAlign = "center";
+  x.font = '800 9px Manrope, sans-serif'; x.textBaseline = "top"; x.textAlign = "center";
   x.shadowColor = "#FF5E8A"; x.shadowBlur = 6; x.fillStyle = "#FFB3C7"; x.fillText("ВКУСНАЯ БИТВА", W / 2, base + 8); x.shadowBlur = 0;
   // столешница и шкафчики
   const cy = base + 104;
@@ -4785,7 +4675,7 @@ const Runner = {
   reset() {
     this.L = { def: FBY.lera, f: 1, x: 62, y: this.GROUND, alt: 0, v: 0, vy: 0, air: false, jumps: 0, state: "run", t: 0, flash: 0, frozen: 0, slow: 0, charm: 0 };
     this.obs = []; this.its = []; this.parts = []; this.texts = []; this.cheers = [];
-    this.speed = 2.7; this.dist = 0; this.t = 0; this.spawnIn = 30; this.itemIn = 110; this.nextCheer = 250;
+    this.speed = 2.7; this.dist = 0; this.t = 0; this.spawnIn = 30; this.itemIn = 110; this.jbuf = 0; this.nextCheer = 250;
     this.farX = 0; this.nearX = 0; this.lampX = 0; this.groundX = 0; this.frontX = 0; this.shake = 0; this.banner = null;
     this.got = { heart: 0, cola: 0, choco: 0, kraut: 0 };
     this.loc = 0; this.prevLoc = -1; this.fade = 1; this.wx = [];
@@ -4800,6 +4690,7 @@ const Runner = {
     A.init();
     const L = this.L;
     if (!L.air) { L.v = 5.6; L.air = true; L.jumps = 1; L.t = 0; SFX.jump(); this.dust(); }
+    else if (L.jumps === 2) this.jbuf = 9; // нажала чуть раньше приземления — прыжок сработает при касании земли
     else if (L.jumps === 1) {
       L.v = 4.8; L.jumps = 2; L.t = 0; SFX.flap();
       for (let i = 0; i < 7; i++) this.part(L.x - 6 + rand(-4, 4), L.y - 30 + rand(-4, 4), rand(-1.5, -.3), rand(.2, .9), pick(["#FFFFFF", "#DCE6F2"]), rand(20, 32), 2, .01);
@@ -4881,7 +4772,8 @@ const Runner = {
     const L = this.L;
     this.speed = Math.min(5.8, 2.7 + this.t * .0007);
     this.dist += this.speed / 8;
-    if (L.air) { L.v -= .3; L.alt += L.v; if (L.alt <= 0) { L.alt = 0; L.v = 0; L.air = false; L.jumps = 0; this.dust(); } }
+    if (L.air) { L.v -= .3; L.alt += L.v; if (L.alt <= 0) { L.alt = 0; L.v = 0; L.air = false; L.jumps = 0; this.dust(); if (this.jbuf > 0) { this.jbuf = 0; this.tap(); } } }
+    if (this.jbuf > 0) this.jbuf--;
     L.state = L.air ? "jump" : "run"; L.t++; L.vy = -L.v; L.y = this.GROUND - L.alt;
     if (!L.air && this.t % 5 === 0) this.part(L.x - 4, this.GROUND - 1, -this.speed * .4, -.3, "#7C779E", 10, 1, .02);
     if (--this.spawnIn <= 0) this.spawn();
@@ -4993,7 +4885,7 @@ const Runner = {
     c.globalAlpha = 1;
     this.drawFront(c);
     vignette(c, W, H);
-    c.font = '800 9px Unbounded, sans-serif'; c.textAlign = "center"; c.textBaseline = "middle";
+    c.font = '800 9px Manrope, sans-serif'; c.textAlign = "center"; c.textBaseline = "middle";
     for (const tx of this.texts) { c.globalAlpha = 1 - tx.age / tx.life; c.fillStyle = OL; c.fillText(tx.s, Math.round(tx.x) + 1, Math.round(tx.y) + 1); c.fillStyle = "#FFD23F"; c.fillText(tx.s, Math.round(tx.x), Math.round(tx.y)); }
     c.globalAlpha = 1;
     c.restore();
@@ -5103,7 +4995,7 @@ const Runner = {
   drawCheer(c, ch) {
     const G0 = this.GROUND, x = Math.round(ch.x), k = this.spr.kolya, hop = this.t % 20 < 10 ? 0 : 1;
     c.drawImage(k, x, G0 - k.height - hop);
-    c.font = '800 9px Unbounded, sans-serif'; c.textAlign = "center"; c.textBaseline = "middle";
+    c.font = '800 9px Manrope, sans-serif'; c.textAlign = "center"; c.textBaseline = "middle";
     const tw = Math.ceil(c.measureText(ch.msg).width) + 8, bx = x + 6 - tw / 2, by = G0 - k.height - 22;
     px(c, bx - 1, by - 1, tw + 2, 14, OL); px(c, bx, by, tw, 12, "#FFF5E0"); px(c, x + 4, by + 12, 3, 3, "#FFF5E0");
     c.fillStyle = "#B0213A"; c.fillText(ch.msg, x + 6, by + 7);
@@ -5575,7 +5467,7 @@ const Tower = {
       for (let x = 0; x < W; x++) { const wv = Math.round(Math.sin((x + this.t * 1.5) * .15) * 1.5); px(c, x, cy + wv, 1, H - cy - wv + 2, "#5A1E14"); px(c, x, cy + wv, 1, 2, "#FFF5F0"); }
       px(c, 0, cy + 6, W, 2, "#8A3A2A");
       for (let k = 0; k < 8; k++) px(c, (k * 37 + this.t * (k % 3 + 1)) % W, cy + 6 + ((k * 23 + this.t) % Math.max(1, H - cy)), 2, 2, "#D9A07A");
-      if (cy < H - 4) { c.font = '800 9px Unbounded, sans-serif'; c.textAlign = "center"; c.textBaseline = "middle"; c.fillStyle = "#FFF5F0"; c.fillText("КОЛА", W / 2, Math.min(H - 8, cy + 18)); }
+      if (cy < H - 4) { c.font = '800 9px Manrope, sans-serif'; c.textAlign = "center"; c.textBaseline = "middle"; c.fillStyle = "#FFF5F0"; c.fillText("КОЛА", W / 2, Math.min(H - 8, cy + 18)); }
     }
     for (const p of this.parts) softDot(c, p.x, this.sy(p.h), p.s, p.col, Math.max(0, 1 - p.age / p.life));
     c.globalAlpha = 1;
@@ -6657,6 +6549,133 @@ const Roof = {
   }
 };
 
+/* ====== Обложки уровней для меню: кадр, нарисованный движком самой игры ====== */
+const CW = 240, CH = 150;
+function coverBase(stops) {
+  const c = hqCanvas(CW, CH, 2), x = c.getContext("2d"), g = x.createLinearGradient(0, 0, 0, CH);
+  stops.forEach(([k, col]) => g.addColorStop(k, col)); x.fillStyle = g; x.fillRect(0, 0, CW, CH);
+  return [c, x];
+}
+function coverHero(x, def, px0, ground, scale, o = {}) {
+  const F = { def, f: o.f || 1, state: o.state || "idle", t: o.t || 12, vy: o.vy || -1, jumps: o.jumps || 0, flash: 0, frozen: 0, slow: 0, charm: 0 };
+  x.save(); x.fillStyle = "rgba(5,3,20,.35)"; x.beginPath(); x.ellipse(px0, ground + 1, 11 * scale, 2.4 * scale, 0, 0, 6.283); x.fill();
+  x.translate(px0, ground); x.scale(scale, scale); x.drawImage(renderFighter(F), -48, -88); x.restore();
+}
+function coverGlow(x, cx, cy, r, rgb, a) { x.save(); x.globalCompositeOperation = "lighter"; x.globalAlpha = a; x.drawImage(glowSprite(rgb), cx - r, cy - r, r * 2, r * 2); x.restore(); }
+// общий «киношный» финиш: затемнение по краям и тёплый свет сверху
+function coverFinish(x) {
+  const v = x.createRadialGradient(CW / 2, CH * .45, CH * .25, CW / 2, CH * .45, CW * .75);
+  v.addColorStop(0, "rgba(0,0,0,0)"); v.addColorStop(1, "rgba(6,4,22,.55)"); x.fillStyle = v; x.fillRect(0, 0, CW, CH);
+  const l = x.createLinearGradient(0, 0, 0, CH); l.addColorStop(0, "rgba(255,230,190,.08)"); l.addColorStop(.5, "rgba(255,230,190,0)"); x.fillStyle = l; x.fillRect(0, 0, CW, CH);
+}
+const COVERS = {
+  runner() {
+    const L = LOCS[1], G0 = 118, [c, x] = coverBase([[0, "#000"], [1, "#000"]]);
+    x.drawImage(skyCanvas(L, CW, CH, G0, G0 - 56), 0, 0);
+    x.drawImage(hillsTile(300, 70, "#7A3A6A", "#9A4E7E"), -20, G0 - 66);
+    x.drawImage(treesTile(280, 64, 4, true), -10, G0 - 62);
+    const g = x.createLinearGradient(0, G0, 0, CH); g.addColorStop(0, "#8BE06A"); g.addColorStop(.15, "#4FA63F"); g.addColorStop(.3, "#6E4630"); g.addColorStop(1, "#3A2216");
+    x.fillStyle = g; x.fillRect(0, G0, CW, CH - G0);
+    coverHero(x, FBY.lera, 92, G0 - 16, 1.75, { state: "jump", vy: -2, jumps: 2, t: 6 });
+    for (let k = 1; k < 4; k++) { x.globalAlpha = .18 / k; x.drawImage(renderFighter({ def: FBY.lera, f: 1, state: "jump", t: 6, vy: -2, jumps: 2, flash: 0, frozen: 0, slow: 0, charm: 0 }), 92 - k * 11 - 48 * 1.75, G0 - 16 + k * 3 - 88 * 1.75, 96 * 1.75, 96 * 1.75); }
+    x.globalAlpha = 1;
+    coverGlow(x, 168, 92, 60, "255,200,120", .35);
+    coverFinish(x); return c;
+  },
+  tower() {
+    const [c, x] = coverBase([[0, "#3A5AB0"], [1, "#A8D0F5"]]);
+    coverGlow(x, 200, 0, 120, "255,236,190", .45);
+    [[40, 30, 26, 120], [170, 66, 26, 90]].forEach(([cx, top, w, h]) => {
+      x.fillStyle = "#F4F6FF"; x.beginPath(); x.roundRect ? x.roundRect(cx, top, w, h, 4) : x.rect(cx, top, w, h); x.fill();
+      const cy = x.createLinearGradient(cx, 0, cx + w, 0); cy.addColorStop(0, "rgba(40,60,120,.35)"); cy.addColorStop(.35, "rgba(255,255,255,.2)"); cy.addColorStop(1, "rgba(40,60,120,.45)");
+      x.fillStyle = cy; x.fillRect(cx, top, w, h);
+      coverGlow(x, cx + w + 2, top + 20, 12, "255,210,63", .6);
+    });
+    for (let k = 0; k < 5; k++) { x.fillStyle = "rgba(255,255,255,.7)"; x.beginPath(); x.ellipse(20 + k * 52, 130 + (k % 2) * 8, 26, 9, 0, 0, 6.283); x.fill(); }
+    coverHero(x, FBY.lera, 120, 92, 1.82, { state: "jump", vy: -2, jumps: 2, t: 4, f: 1 });
+    coverFinish(x); return c;
+  },
+  fight() {
+    const st = buildStage(CW, 200), [c, x] = coverBase([[0, "#000"], [1, "#000"]]);
+    x.drawImage(st, 0, 48, CW, CH, 0, 0, CW, CH);
+    coverGlow(x, 60, 0, 90, "255,190,120", .3); coverGlow(x, 180, 0, 90, "140,160,255", .3);
+    coverHero(x, FBY.kolya, 88, 105, 1.89, { state: "block", f: 1 });
+    coverHero(x, FBY.lera, 152, 105, 1.89, { state: "win", f: -1, t: 6 });
+    coverGlow(x, 120, 70, 16, "255,250,235", .7);
+    coverFinish(x); return c;
+  },
+  surv() {
+    const [c, x] = coverBase([[0, "#1C382D"], [1, "#12261E"]]);
+    const gt = Surv.groundTile(); for (let yy = 0; yy < CH; yy += 128) for (let xx = 0; xx < CW; xx += 128) x.drawImage(gt, xx, yy);
+    const d = x.createRadialGradient(CW / 2, 80, 10, CW / 2, 80, 130); d.addColorStop(0, "rgba(8,6,28,0)"); d.addColorStop(1, "rgba(8,6,28,.8)"); x.fillStyle = d; x.fillRect(0, 0, CW, CH);
+    [[30, 40], [200, 32], [40, 118], [196, 112], [118, 20], [150, 132], [80, 140]].forEach(([a, b], i) => { const s = i % 3 === 0 ? Surv.spr.brocc : i % 3 === 1 ? Surv.spr.cloud : Surv.spr.clock; x.drawImage(s, a - s.width / 2, b - s.height / 2); });
+    for (let k = 0; k < 8; k++) { const a = k / 8 * 6.283; coverGlow(x, CW / 2 + Math.cos(a) * 34, 84 + Math.sin(a) * 24, 7, "255,80,60", .8); }
+    [[70, 70], [170, 64], [160, 104]].forEach(([a, b]) => coverGlow(x, a, b, 6, "255,143,177", .9));
+    coverHero(x, FBY.lera, CW / 2, 104, 1.65, { state: "idle" });
+    coverFinish(x); return c;
+  },
+  catch() {
+    const [c, x] = coverBase([[0, "#2A1E5A"], [.7, "#7A3A6E"], [1, "#C25A7A"]]);
+    coverGlow(x, 190, 40, 70, "255,214,140", .3);
+    const g = x.createLinearGradient(0, 122, 0, CH); g.addColorStop(0, "#6FD35A"); g.addColorStop(.25, "#3E9A3A"); g.addColorStop(.35, "#7A4A2E"); g.addColorStop(1, "#3A2216"); x.fillStyle = g; x.fillRect(0, 122, CW, CH - 122);
+    [["cola", 54, 30], ["choco", 160, 22], ["kraut", 110, 6], ["heart", 196, 66], ["cola", 30, 82]].forEach(([k, a, b]) => { const s = paint(SPR[k], 3); coverGlow(x, a, b + s.height / 2, s.width, "255,220,150", .35); x.drawImage(s, a - s.width / 2, b); });
+    coverHero(x, FBY.lera, 120, 124, 1.75, { state: "win", t: 10 });
+    coverFinish(x); return c;
+  },
+  dance() {
+    const [c, x] = coverBase([[0, "#160F2E"], [1, "#2E1A48"]]);
+    x.save(); x.globalCompositeOperation = "lighter";
+    [[40, "255,94,138"], [200, "46,196,169"]].forEach(([bx, rgb]) => { const g = x.createLinearGradient(bx, 0, CW / 2, CH); g.addColorStop(0, `rgba(${rgb},.45)`); g.addColorStop(1, `rgba(${rgb},0)`); x.fillStyle = g; x.beginPath(); x.moveTo(bx - 4, 0); x.lineTo(bx + 4, 0); x.lineTo(CW / 2 + 50, CH); x.lineTo(CW / 2 - 50, CH); x.closePath(); x.fill(); });
+    x.restore();
+    const cols = ["#FF5E8A", "#FFD23F", "#2EC4A9", "#3BA7FF", "#8C6CF0"];
+    for (let r = 0; r < 3; r++) for (let k = 0; k < 7; k++) { const y0 = 112 + r * 13, y1 = y0 + 12, sk = (r + 1) * 6, w0 = CW / 7; const lit = (r * 3 + k) % 3 === 0; x.fillStyle = lit ? cols[(r + k) % cols.length] : "#2A2350"; x.globalAlpha = lit ? .9 : 1; x.beginPath(); x.moveTo(k * w0 - sk * (3 - k) / 3, y0); x.lineTo((k + 1) * w0 - sk * (2 - k) / 3, y0); x.lineTo((k + 1) * w0 - (sk + 6) * (2 - k) / 3, y1); x.lineTo(k * w0 - (sk + 6) * (3 - k) / 3, y1); x.closePath(); x.fill(); if (lit) coverGlow(x, k * w0 + w0 / 2, y0 + 6, 18, "255,200,230", .25); }
+    x.globalAlpha = 1;
+    coverGlow(x, CW / 2, 18, 40, "255,255,255", .35);
+    coverHero(x, FBY.lera, CW / 2, 118, 1.8, { state: "win", t: 14 });
+    coverFinish(x); return c;
+  },
+  stars() {
+    const [c, x] = coverBase([[0, "#0B0E2A"], [1, "#2A1E5A"]]);
+    const R = seededSky(3); for (let k = 0; k < 120; k++) { x.globalAlpha = .3 + R() * .6; x.fillStyle = "#EDE8FF"; x.beginPath(); x.arc(R() * CW, R() * CH, R() * .9 + .2, 0, 6.283); x.fill(); }
+    x.globalAlpha = 1;
+    const pts = [[50, 128], [36, 92], [26, 58], [54, 28], [120, 52], [186, 28], [214, 58], [204, 92], [190, 128]].map(([a, b]) => [a * .8 + 24, b * .9 + 4]);
+    const P = [[120, 140], ...pts.slice(1, -1), [120, 140]];
+    x.strokeStyle = "rgba(244,214,154,.8)"; x.lineWidth = 1.2; x.shadowColor = "rgba(244,214,154,.9)"; x.shadowBlur = 8; x.beginPath(); P.forEach(([a, b], i) => i ? x.lineTo(a, b) : x.moveTo(a, b)); x.stroke(); x.shadowBlur = 0;
+    const st = paint(SPR.star, 2); P.slice(1, -1).forEach(([a, b]) => { coverGlow(x, a, b, 16, "244,214,154", .5); x.drawImage(st, a - st.width / 2, b - st.height / 2); });
+    coverFinish(x); return c;
+  },
+  wardrobe() {
+    const [c, x] = coverBase([[0, "#3A2448"], [1, "#7A3A6E"]]);
+    coverGlow(x, CW / 2, 70, 90, "240,166,184", .35);
+    coverHero(x, FBY.lera, 70, 140, 2.03, { state: "win", t: 8 });
+    coverHero(x, FBY.lera, 172, 140, 2.03, { state: "idle", f: -1 });
+    coverFinish(x); return c;
+  },
+  roof() {
+    const [c, x] = coverBase([[0, "#090A24"], [.6, "#2A1E5A"], [1, "#C25A7A"]]);
+    const R = seededSky(8); for (let k = 0; k < 70; k++) { x.globalAlpha = .3 + R() * .5; x.fillStyle = "#FFF4E6"; x.beginPath(); x.arc(R() * CW, R() * 70, R() * .8 + .2, 0, 6.283); x.fill(); }
+    x.globalAlpha = 1;
+    coverGlow(x, 196, 30, 40, "255,236,190", .45); x.fillStyle = "#FFF4D8"; x.beginPath(); x.arc(196, 30, 10, 0, 6.283); x.fill();
+    x.globalAlpha = .85; x.drawImage(cityTile(CW, 90, "#1E1A3F", "#C9A85A", 31), 0, 128 - 86); x.globalAlpha = 1;
+    x.fillStyle = "#1F1A38"; x.fillRect(0, 128, CW, CH - 128);
+    if (!secretOpen()) { x.fillStyle = "rgba(6,4,22,.45)"; x.fillRect(0, 0, CW, CH); }
+    coverHero(x, FBY.kolya, 108, 128, 1.61, { state: "idle", f: 1 });
+    coverHero(x, FBY.lera, 132, 128, 1.61, { state: "idle", f: -1 });
+    coverFinish(x); return c;
+  },
+  final() {
+    const [c, x] = coverBase([[0, "#FFF6E4"], [1, "#F3D9C2"]]);
+    x.save(); x.translate(26, 24); x.rotate(-.04);
+    x.fillStyle = "#FFFDF6"; x.shadowColor = "rgba(80,40,20,.25)"; x.shadowBlur = 10; x.fillRect(0, 0, 150, 104); x.shadowBlur = 0;
+    x.strokeStyle = "rgba(150,110,80,.25)"; x.lineWidth = .6; for (let k = 0; k < 6; k++) { x.beginPath(); x.moveTo(12, 30 + k * 12); x.lineTo(138, 30 + k * 12); x.stroke(); }
+    x.fillStyle = "#3B2618"; x.font = "600 22px Caveat, cursive"; x.fillText("Лера,", 14, 26);
+    x.restore();
+    const h = paint(SPR.heart, 4); coverGlow(x, 190, 100, 40, "255,94,138", .25); x.drawImage(h, 190 - h.width / 2, 100 - h.height / 2);
+    return c;
+  }
+};
+Object.entries(COVERS).forEach(([k, fn]) => { ICON_FN["cover_" + k] = fn; });
+
 /* ====== Вступление ====== */
 const Intro = {
   taps: 0, opened: false,
@@ -6734,7 +6753,7 @@ const Menu = {
       const st = l.stat();
       return `<button class="lvl${l.wide ? " wide" : ""}${l.cls ? " " + l.cls : ""}" type="button" data-lv="${l.id}">` +
         (l.isNew ? `<span class="badge">НОВОЕ</span>` : "") +
-        `<img class="lv-ic px${l.secret && !secretOpen() ? " locked" : ""}" src="${icon(l.ic)}" alt=""><span class="lv-txt"><h3>${l.title}</h3><p>${l.text}</p>${st ? `<span class="lv-stat">${st}</span>` : ""}</span></button>`;
+        `<img class="lv-ic${l.secret && !secretOpen() ? " locked" : ""}" src="${icon(ICON_FN["cover_" + l.id] ? "cover_" + l.id : l.ic)}" alt=""><span class="lv-txt"><h3>${l.title}</h3><p>${l.text}</p>${st ? `<span class="lv-stat">${st}</span>` : ""}</span></button>`;
     }).join("");
   }
 };
@@ -7000,7 +7019,7 @@ const Game = {
     const flap = Math.sin(this.elapsed * 14) > 0 ? 0 : P;
     c.drawImage(this.spr.wings, px0 - 3 * P, py + 4 * P + flap);
     c.drawImage(this.spr.lera, px0, py);
-    c.font = `800 ${Math.max(8, S * 2)}px Unbounded, sans-serif`;
+    c.font = `800 ${Math.max(8, S * 2)}px Manrope, sans-serif`;
     c.textAlign = "center"; c.textBaseline = "bottom";
     const tagW = c.measureText("ЛЕРА").width + 10, tagX = px0 + this.pw / 2, tagY = py - S;
     c.fillStyle = "rgba(13,14,32,.6)"; c.fillRect(tagX - tagW / 2, tagY - S * 2 - 8, tagW, S * 2 + 8);
@@ -7009,7 +7028,7 @@ const Game = {
     c.fillStyle = "rgba(0,0,0,.25)"; c.fillRect(px0 + 2 * P, this.groundY, 8 * P, Math.max(2, S));
     for (const p of this.parts) softDot(c, p.x, p.y, p.s, p.c, Math.max(0, 1 - p.age / p.life));
     c.globalAlpha = 1;
-    c.font = `800 ${Math.max(10, S * 3)}px Unbounded, sans-serif`;
+    c.font = `800 ${Math.max(10, S * 3)}px Manrope, sans-serif`;
     c.textBaseline = "middle";
     for (const t of this.texts) {
       c.globalAlpha = Math.max(0, 1 - t.age / t.life);
