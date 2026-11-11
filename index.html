@@ -626,6 +626,60 @@ body,#app{background:#0E1430}
 .btn.sm{font-size:13px}
 .eyebrow{font:700 12px/1.4 var(--font-body);letter-spacing:.04em;text-transform:none}
 .grain-all{opacity:.03}
+
+/* ====== Графика 4.1: те же спокойные правила внутри уровней ====== */
+/* шапка уровня: тонкая, без свечения */
+.hud{padding:10px 16px 8px}
+.hud-row{color:var(--muted)}
+.hud-row span:first-child{color:var(--ink);font-weight:800}
+/* шкалы: тонкие, ровный цвет, без неона */
+.bar,.sv-bar,.loader{height:8px;padding:0;border-radius:999px;background:rgba(243,236,226,.1);box-shadow:none}
+.bar-fill,.loader-fill{border-radius:999px;background:var(--gold);box-shadow:none}
+.sv-bar{height:7px}
+.sv-bar.hp i{background:var(--pink);box-shadow:none}
+.sv-bar.xp i{background:var(--gold);box-shadow:none}
+.hp-bar{height:8px;border-radius:999px;background:rgba(243,236,226,.1);box-shadow:none}
+.fstats i{height:6px;border-radius:999px;background:rgba(243,236,226,.1)}
+.fstats i b{border-radius:999px;background:var(--gold)}
+/* окна (начало, пауза, итог): тёмная бумага с тонкой рамкой */
+.overlay{background:rgba(9,11,30,.62);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.panel{background:rgba(18,22,52,.92);border:1px solid rgba(243,236,226,.1);border-radius:18px;box-shadow:0 24px 60px rgba(0,0,0,.45);backdrop-filter:none;-webkit-backdrop-filter:none;gap:12px;padding:24px 22px}
+.panel p{color:var(--muted);font-size:15px;line-height:1.5}
+.panel h2{font-size:30px;line-height:1.1}
+/* кнопки: главная — лунное золото, второстепенная — тонкий контур */
+.btn{--b:#F4D69A;color:#1E1830;background-color:var(--b);background-image:none;border-radius:12px;min-height:50px;box-shadow:0 6px 18px rgba(0,0,0,.28)}
+.btn:active{transform:translateY(1px);box-shadow:0 2px 8px rgba(0,0,0,.3);filter:none}
+.btn.gold{--b:#F4D69A;color:#1E1830}
+.btn.ghost{color:var(--ink);background-color:transparent;box-shadow:inset 0 0 0 1px rgba(243,236,226,.28)}
+.btn.move{color:#fff}
+/* подсказки под игрой */
+.rhint{font:500 13px/1.5 var(--font-body);color:var(--muted)}
+/* карточки улучшений в «Атаке хмуриков» */
+.sv-card{background:rgba(243,236,226,.05);border-radius:14px;box-shadow:inset 0 0 0 1px rgba(243,236,226,.12)}
+.sv-card b{font:700 19px/1.15 var(--font-display);color:var(--ink)}
+.sv-card small{font:700 11px/1.3 var(--font-body);color:var(--gold)}
+.sv-card u{font:600 12px/1.35 var(--font-body);color:var(--pink)}
+.sv-card.evo{background:rgba(244,214,154,.1);box-shadow:inset 0 0 0 1px var(--gold)}
+.sv-card.evo small{color:var(--gold)}
+.sv-slot,.sv-pause{border-radius:10px;background:rgba(18,22,52,.75);box-shadow:inset 0 0 0 1px rgba(243,236,226,.16)}
+.sv-slot.evo{box-shadow:inset 0 0 0 1px var(--gold)}
+/* битва: приглушённые кнопки без глянца, цвет только как подсказка */
+.pb{border-radius:14px;background-image:none;box-shadow:inset 0 0 0 1px rgba(243,236,226,.14),0 6px 14px rgba(0,0,0,.3);font:800 13px/1.2 var(--font-body)}
+.pb.a1{background-color:#B0485C}.pb.a2{background-color:#B0703F}.pb.blk{background-color:#3F5F92}.pb.sup{background-color:#6A55A8}
+.pb.ult{background:linear-gradient(90deg,#B0485C,#C9A15C);color:#1E1830}
+.pb.sup.ready,.pb.ult.ready{box-shadow:inset 0 0 0 2px var(--gold);animation:none}
+.announce span{font:700 clamp(30px,10vw,52px)/1.1 var(--font-display);color:var(--ink);text-shadow:0 0 24px rgba(244,214,154,.45),0 2px 0 rgba(0,0,0,.4)}
+.combo{font:800 14px/1.4 var(--font-body);text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.vs{background:rgba(9,11,30,.86)}
+.ftimer{font:800 15px/1.2 var(--font-body);background:rgba(18,22,52,.75)}
+/* уведомления о достижениях */
+.toast{background:rgba(18,22,52,.94);box-shadow:inset 0 0 0 1px rgba(244,214,154,.35),0 14px 34px rgba(0,0,0,.4);backdrop-filter:none;-webkit-backdrop-filter:none}
+.toast-k{font:700 11px/1.4 var(--font-body);color:var(--gold);letter-spacing:.02em}
+/* танцпол: подпись-реакция и кнопки движений */
+.hype{font:700 clamp(22px,7vw,30px)/1.2 var(--font-display);color:var(--ink);text-shadow:0 0 18px rgba(240,166,184,.5)}
+.btn.move{background-image:none;border-radius:12px}
+/* если есть «Продолжить», «Сначала»/«Новая игра» становится второстепенной */
+.btn.gold:not([hidden]) ~ .btn:not(.gold){color:var(--ink);background-color:transparent;box-shadow:inset 0 0 0 1px rgba(243,236,226,.28)}
 /* удобство касаний: цели не меньше 44 px */
 .diff button{min-height:44px}
 .lvl.wide .badge ~ .lv-txt h3{padding-right:72px}
@@ -1381,7 +1435,8 @@ const Stars = {
       c.beginPath(); c.arc(s.x, s.y, s.r, 0, 6.283); c.fill();
     }
     c.globalAlpha = 1;
-    // луна с ореолом — главный акцент фона
+    // луна с ореолом — главный акцент фона; внутри игр её не рисуем, чтобы не просвечивала за шапкой
+    if (["catch", "runner", "tower", "fight", "surv", "dance", "roof"].includes(current)) { this.drawShoot(c); return; }
     const mr = Math.min(42, Math.max(22, w * .05)), mx = w * .82, my = Math.max(70, h * .14), br = 1 + Math.sin(t * .01) * .03;
     const halo = c.createRadialGradient(mx, my, mr * .8, mx, my, mr * 6 * br);
     halo.addColorStop(0, "rgba(244,214,154,.22)"); halo.addColorStop(.35, "rgba(240,166,184,.07)"); halo.addColorStop(1, "rgba(240,166,184,0)");
@@ -1391,7 +1446,9 @@ const Stars = {
     c.fillStyle = mg; c.beginPath(); c.arc(mx, my, mr, 0, 6.283); c.fill();
     c.fillStyle = "rgba(170,140,90,.18)";
     [[-.3, -.2, .22], [.25, .3, .16], [.05, -.45, .1], [-.15, .4, .12]].forEach(([a, b, r]) => { c.beginPath(); c.arc(mx + a * mr, my + b * mr, r * mr, 0, 6.283); c.fill(); });
-    // падающая звезда
+    this.drawShoot(c);
+  },
+  drawShoot(c) {
     const s = this.shoot;
     if (s) {
       const k = s.life / 22, x0 = s.x - k * 160, y0 = s.y + k * 70, a = Math.sin(k * Math.PI);
@@ -2754,13 +2811,13 @@ const Post = {
     const x = h.x, k = h.k; x.save();
     x.setTransform(1, 0, 0, 1, 0, 0);
     const X = x0 * k - (o.cx || 0) * k, Y = y0 * k - (o.cy || 0) * k, px0 = size * k;
-    x.font = `${o.weight || 900} ${px0}px Manrope, sans-serif`; x.textAlign = "center"; x.textBaseline = "middle";
+    x.font = size >= 10 ? `700 ${px0 * 1.4}px "Cormorant Garamond", Georgia, serif` : `${o.weight || 800} ${px0}px Manrope, sans-serif`; // крупные надписи — антиквой x.textAlign = "center"; x.textBaseline = "middle";
     x.globalAlpha = o.a == null ? 1 : o.a;
     x.lineJoin = "round"; x.lineWidth = px0 * .22; x.strokeStyle = o.stroke || "rgba(20,10,40,.85)"; x.strokeText(s, X, Y);
     const g = x.createLinearGradient(0, Y - px0 / 2, 0, Y + px0 / 2);
-    const cols = o.cols || ["#FFF6C8", "#FFD23F", "#FF8A3D"];
+    const cols = o.cols || ["#FFFDF6", "#F4D69A"];
     cols.forEach((c, i) => g.addColorStop(i / (cols.length - 1), c));
-    if (o.glow !== false) { x.shadowColor = o.glow || "rgba(255,180,60,.9)"; x.shadowBlur = px0 * .6; }
+    if (o.glow !== false) { x.shadowColor = o.glow || "rgba(244,214,154,.6)"; x.shadowBlur = px0 * .6; }
     x.fillStyle = g; x.fillText(s, X, Y);
     x.restore();
   }
