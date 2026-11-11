@@ -40,7 +40,7 @@ html{height:100%;box-sizing:border-box}
 body{height:100%;margin:0;overflow:hidden;overscroll-behavior:none;background:var(--sky-top);color:var(--ink);font:500 16px/1.5 var(--font-body);-webkit-tap-highlight-color:transparent}
 button{font:inherit;color:inherit;touch-action:manipulation}
 a{color:var(--gold)}
-img.px,.px img,.p,canvas.px{image-rendering:-moz-crisp-edges;image-rendering:pixelated}
+img.px,.px img,.p,canvas.px{image-rendering:auto}
 
 #app{position:relative;height:100%;overflow:hidden;display:flex;flex-direction:column;background:linear-gradient(180deg,var(--sky-top) 0%,var(--sky-mid) 58%,var(--sky-low) 100%)}
 #stars,#fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
@@ -881,7 +881,7 @@ body{-webkit-font-smoothing:antialiased}
     <!-- Атака хмуриков -->
     <section class="scene fixed" id="s-surv" hidden>
       <header class="hud">
-        <div class="hud-row"><span>⏱ <b id="svTime">0:00</b></span><span>УР <b id="svLvl">1</b></span><span>✖ <b id="svKills">0</b></span></div>
+        <div class="hud-row"><span>НОЧЬ <b id="svStage">1</b>/5</span><span>⏱ <b id="svTime">0:00</b></span><span>УР <b id="svLvl">1</b></span><span>✖ <b id="svKills">0</b></span></div>
         <div class="sv-bars"><div class="sv-bar hp"><i id="svHp"></i></div><div class="sv-bar xp"><i id="svXp"></i></div></div>
         <div class="sv-inv" id="svInv"></div>
       </header>
@@ -892,11 +892,12 @@ body{-webkit-font-smoothing:antialiased}
         <div class="overlay" id="svIntro">
           <div class="panel">
             <h2>Атака хмуриков</h2>
-            <p>Ночью в парк пришли хмурики: тучки, будильники, летающая домашка и злая брокколи. Их всё больше с каждой минутой!</p>
+            <p>Пять ночей подряд в парк приходят хмурики: тучки, будильники, домашка, брокколи, капли, тучки-стрелки и призраки. В конце каждой ночи — огромный босс, а в последнюю приходит сам Король Хмури.</p>
             <p>Води пальцем — Лера убегает, а стрелы купидона летят сами. Собирай искорки: на каждом новом уровне выбирай одно из трёх улучшений. Оружия 13 видов, носить можно шесть.</p>
             <p>Прокачай оружие до максимума и возьми подходящую силу — случится эволюция ★. Грозовые тучи носят подарки.</p>
-            <p>Продержись до 4:30 и прогони Короля Хмури!</p>
-            <button class="btn" id="svStart" type="button">В бой!</button>
+            <p>После каждой ночи игра сохраняется: если Лера проиграет, можно продолжить с начала той же ночи со всей прокачкой.</p>
+            <button class="btn gold" id="svCont" type="button" hidden>Продолжить</button>
+            <button class="btn" id="svStart" type="button">Новая игра</button>
           </div>
         </div>
         <div class="overlay" id="svUp" hidden>
@@ -918,7 +919,8 @@ body{-webkit-font-smoothing:antialiased}
           <div class="panel">
             <h2 id="svOverTitle">Хмурики победили</h2>
             <p id="svOverText"></p>
-            <button class="btn" id="svAgain" type="button">Ещё раз</button>
+            <button class="btn gold" id="svCont2" type="button" hidden>Продолжить</button>
+            <button class="btn" id="svAgain" type="button">Сначала</button>
             <button class="btn ghost" data-go="menu" type="button">В меню</button>
           </div>
         </div>
@@ -1107,36 +1109,88 @@ const SPR = {
   giftBox: { pal: GIFT_PAL, rows: GIFT.slice(8) }
 };
 
-// Спрайт из строк. Чёрный внешний контур перекрашивается в тёмный оттенок соседних цветов (как в современной пиксельной графике),
-// а сверху ложится мягкий свет и тень — так спрайты выглядят объёмнее и не так мультяшно.
-const OUTLINES = new Set(["#1A1530", "#120F1C"]);
+/* ====== Без пикселей: всё рисуется в высоком разрешении ======
+   hqCanvas — холст, у которого «логический» размер маленький (как раньше), а настоящая картинка внутри в HQ раз больше.
+   drawImage сам рисует такие холсты в логическом размере, поэтому остальной код менять не нужно. */
+const HQ = 3;
+function hqCanvas(w, h, q = HQ) {
+  const c = document.createElement("canvas");
+  c.width = Math.max(1, Math.ceil(w * q)); c.height = Math.max(1, Math.ceil(h * q));
+  c.getContext("2d").setTransform(q, 0, 0, q, 0, 0);
+  c.__q = q; c.__bw = c.width; c.__bh = c.height;
+  Object.defineProperty(c, "width", { get: () => w, set() {}, configurable: true });
+  Object.defineProperty(c, "height", { get: () => h, set() {}, configurable: true });
+  return c;
+}
+(() => {
+  const di = CanvasRenderingContext2D.prototype.drawImage;
+  CanvasRenderingContext2D.prototype.drawImage = function (img, a, b, c, d, e, f, g, h) {
+    const q = img && img.__q;
+    if (!q) return arguments.length === 3 ? di.call(this, img, a, b) : arguments.length === 5 ? di.call(this, img, a, b, c, d) : di.call(this, img, a, b, c, d, e, f, g, h);
+    if (arguments.length === 3) return di.call(this, img, a, b, img.width, img.height);
+    if (arguments.length === 5) return di.call(this, img, a, b, c, d);
+    return di.call(this, img, a * q, b * q, c * q, d * q, e, f, g, h);
+  };
+})();
+// цвет → [r, g, b, a]
+const colCache = {}, colCtx = document.createElement("canvas").getContext("2d");
+function rgbaOf(col) {
+  if (colCache[col]) return colCache[col];
+  colCtx.fillStyle = "#000"; colCtx.fillStyle = col; const v = colCtx.fillStyle;
+  let out;
+  if (v[0] === "#") { const n = parseInt(v.slice(1), 16); out = [n >> 16 & 255, n >> 8 & 255, n & 255, 255]; }
+  else { const m = v.match(/[\d.]+/g); out = [+m[0], +m[1], +m[2], Math.round((m[3] == null ? 1 : +m[3]) * 255)]; }
+  return (colCache[col] = out);
+}
+// EPX: удваивает картинку и скругляет «лесенки» по диагоналям
+function epx(G, w, h) {
+  const W2 = w * 2, out = new Array(W2 * h * 2);
+  const at = (i, j) => (i < 0 || j < 0 || i >= w || j >= h) ? null : G[j * w + i];
+  for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
+    const P = G[j * w + i], A = at(i, j - 1), B = at(i + 1, j), C = at(i - 1, j), D = at(i, j + 1);
+    let e0 = P, e1 = P, e2 = P, e3 = P;
+    if (C === A && C !== D && A !== B) e0 = A;
+    if (A === B && A !== C && B !== D) e1 = B;
+    if (D === C && D !== B && C !== A) e2 = C;
+    if (B === D && B !== A && D !== C) e3 = D;
+    const o = j * 2 * W2 + i * 2;
+    out[o] = e0; out[o + 1] = e1; out[o + W2] = e2; out[o + W2 + 1] = e3;
+  }
+  return out;
+}
+const OUTLINES = new Set(["#1A1530", "#120F1C", "#24193A"]);
 function shadeCol(cols, k) {
   let r = 0, g = 0, b = 0;
-  for (const c of cols) { const n = parseInt(c.slice(1, 7), 16); r += n >> 16 & 255; g += n >> 8 & 255; b += n & 255; }
+  for (const c of cols) { const [cr, cg, cb] = rgbaOf(c); r += cr; g += cg; b += cb; }
   const m = cols.length;
   return `rgb(${Math.round(r / m * k + 18 * (1 - k))},${Math.round(g / m * k + 12 * (1 - k))},${Math.round(b / m * k + 40 * (1 - k))})`;
 }
+// Спрайт из строк: внешний контур перекрашивается в тёмный оттенок соседних цветов, картинка сглаживается EPX,
+// хранится в высоком разрешении и получает мягкий свет сверху и тень снизу.
 function paint(def, s) {
   const h = def.rows.length, w = Math.max(...def.rows.map(r => r.length));
-  const c = document.createElement("canvas");
-  c.width = w * s; c.height = h * s;
-  const x = c.getContext("2d");
   const at = (i, j) => (j < 0 || j >= h || i < 0) ? null : def.pal[def.rows[j][i]] || null;
-  def.rows.forEach((row, j) => {
-    for (let i = 0; i < row.length; i++) {
-      let col = def.pal[row[i]];
-      if (!col) continue;
-      if (OUTLINES.has(col)) {
-        const n4 = [at(i - 1, j), at(i + 1, j), at(i, j - 1), at(i, j + 1)];
-        if (n4.some(v => !v)) {
-          const near = [];
-          for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) { const v = at(i + di, j + dj); if (v && v[0] === "#" && !OUTLINES.has(v)) near.push(v); }
-          if (near.length) col = shadeCol(near, .42);
-        }
-      }
-      x.fillStyle = col; x.fillRect(i * s, j * s, s, s);
+  let G = new Array(w * h).fill(null);
+  for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
+    let col = at(i, j);
+    if (!col) continue;
+    if (OUTLINES.has(col) && [at(i - 1, j), at(i + 1, j), at(i, j - 1), at(i, j + 1)].some(v => !v)) {
+      const near = [];
+      for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) { const v = at(i + di, j + dj); if (v && !OUTLINES.has(v)) near.push(v); }
+      if (near.length) col = shadeCol(near, .45);
     }
-  });
+    G[j * w + i] = col;
+  }
+  let gw = w, gh = h;
+  const passes = s >= 8 ? 4 : s >= 4 ? 3 : 2;
+  for (let p = 0; p < passes; p++) { G = epx(G, gw, gh); gw *= 2; gh *= 2; }
+  const small = document.createElement("canvas"); small.width = gw; small.height = gh;
+  const sx = small.getContext("2d"), im = sx.createImageData(gw, gh), d = im.data;
+  for (let k = 0; k < G.length; k++) { const col = G[k]; if (!col) continue; const [r, g, b, a] = rgbaOf(col); d[k * 4] = r; d[k * 4 + 1] = g; d[k * 4 + 2] = b; d[k * 4 + 3] = a; }
+  sx.putImageData(im, 0, 0);
+  const c = hqCanvas(w * s, h * s), x = c.getContext("2d");
+  x.imageSmoothingEnabled = true; x.imageSmoothingQuality = "high";
+  x.drawImage(small, 0, 0, w * s, h * s);
   const g = x.createLinearGradient(0, 0, w * s * .3, h * s);
   g.addColorStop(0, "rgba(255,250,235,.16)"); g.addColorStop(.45, "rgba(255,255,255,0)"); g.addColorStop(1, "rgba(30,12,70,.26)");
   x.globalCompositeOperation = "source-atop"; x.fillStyle = g; x.fillRect(0, 0, w * s, h * s); x.globalCompositeOperation = "source-over";
@@ -1569,12 +1623,16 @@ document.addEventListener("click", e => { const b = e.target.closest("[data-go]"
 /* Подгоняет пиксельный холст под доступное место: внутренний размер меняется под пропорции экрана */
 function fitPixel(box, wrap, cv, o) {
   const bw = box.clientWidth, bh = box.clientHeight;
-  if (!bw || !bh) return { W: cv.width, H: cv.height, s: 1 };
+  if (!bw || !bh) return { W: cv.__W || cv.width, H: cv.__H || cv.height, s: 1 };
   const aspect = bw / bh;
   const W = clamp(Math.round(o.baseH * aspect), o.minW, o.maxW);
   const H = clamp(Math.round(W / aspect), o.baseH, o.maxH);
   const s = Math.min(bw / W, bh / H);
-  if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+  // картинка рисуется в разрешении экрана (до 3 точек на единицу мира), а код игры работает в прежних координатах
+  const k = Math.min(3, Math.max(1, s * (window.devicePixelRatio || 1))), BW = Math.round(W * k), BH = Math.round(H * k);
+  if (cv.width !== BW || cv.height !== BH || cv.__W !== W) { cv.width = BW; cv.height = BH; }
+  const cx = cv.getContext("2d"); cx.setTransform(BW / W, 0, 0, BH / H, 0, 0); cx.imageSmoothingEnabled = true;
+  cv.__W = W; cv.__H = H;
   wrap.style.width = Math.floor(W * s) + "px";
   wrap.style.height = Math.floor(H * s) + "px";
   return { W, H, s };
@@ -2061,36 +2119,27 @@ const Player = {
   }
 };
 
-/* ====== Пиксельный скелет: бойцы «Вкусной битвы» и бегущая Лера ====== */
-const OL = "#120F1C";
+/* ====== Скелет: бойцы «Вкусной битвы» и бегущая Лера (гладкие векторные линии) ====== */
+const OL = "#24193A";
 const D2R = Math.PI / 180;
-function px(c, x, y, w, h, col) { c.fillStyle = col; c.fillRect(Math.round(x), Math.round(y), w, h); }
+// прямоугольник; крупные детали получают скруглённые углы, чтобы не было «кубиков»
+const RR = !!CanvasRenderingContext2D.prototype.roundRect;
+function rrect(c, x, y, w, h) { if (RR && w >= 3 && h >= 3) { c.beginPath(); c.roundRect(x, y, w, h, Math.min(2.2, Math.min(w, h) * .3)); c.fill(); } else c.fillRect(x, y, w, h); }
+function px(c, x, y, w, h, col) { c.fillStyle = col; rrect(c, x, y, w, h); }
 // прямоугольник относительно точки (ox, oy) с учётом того, куда смотрит персонаж
-function fr(c, ox, oy, dx, dy, w, h, col, f) { c.fillStyle = col; c.fillRect(f > 0 ? ox + dx : ox - dx - w + 1, oy + dy, w, h); }
+function fr(c, ox, oy, dx, dy, w, h, col, f) { c.fillStyle = col; rrect(c, f > 0 ? ox + dx : ox - dx - w + 1, oy + dy, w, h); }
 function pline(c, x0, y0, x1, y1, w, col) {
-  c.fillStyle = col;
-  x0 = Math.round(x0); y0 = Math.round(y0); x1 = Math.round(x1); y1 = Math.round(y1);
-  const dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1, h = Math.floor(w / 2);
-  let err = dx + dy;
-  for (let i = 0; i < 300; i++) {
-    c.fillRect(x0 - h, y0 - h, w, w);
-    if (x0 === x1 && y0 === y1) break;
-    const e2 = 2 * err;
-    if (e2 >= dy) { err += dy; x0 += sx; }
-    if (e2 <= dx) { err += dx; y0 += sy; }
-  }
+  const o = w % 2 ? .5 : 0;
+  c.strokeStyle = col; c.lineWidth = w; c.lineCap = "round"; c.lineJoin = "round";
+  c.beginPath(); c.moveTo(x0 + o, y0 + o); c.lineTo(x1 + o + (x0 === x1 && y0 === y1 ? .01 : 0), y1 + o); c.stroke();
 }
 function pell(c, cx, cy, rx, ry, col) {
-  c.fillStyle = col; cx = Math.round(cx); cy = Math.round(cy);
-  for (let y = -ry; y <= ry; y++) {
-    const k = ry ? y / ry : 0, dx = Math.round(rx * Math.sqrt(Math.max(0, 1 - k * k)));
-    c.fillRect(cx - dx, cy + y, dx * 2 + 1, 1);
-  }
+  c.fillStyle = col; c.beginPath(); c.ellipse(cx + .5, cy + .5, Math.max(.3, rx + .5), Math.max(.3, ry + .5), 0, 0, 6.283); c.fill();
 }
-function pellO(c, cx, cy, rx, ry, col) { pell(c, cx, cy, rx + 1, ry + 1, OL); pell(c, cx, cy, rx, ry, col); }
+function pellO(c, cx, cy, rx, ry, col) { pell(c, cx, cy, rx + .7, ry + .7, OL); pell(c, cx, cy, rx, ry, col); }
 function J(o, a, len, f) { return [o[0] + Math.sin(a * D2R) * len * f, o[1] + Math.cos(a * D2R) * len]; }
 function limb(c, a, b, d, w, c1, c2) {
-  pline(c, a[0], a[1], b[0], b[1], w + 2, OL); pline(c, b[0], b[1], d[0], d[1], w + 2, OL);
+  pline(c, a[0], a[1], b[0], b[1], w + 1.3, OL); pline(c, b[0], b[1], d[0], d[1], w + 1.3, OL);
   pline(c, a[0], a[1], b[0], b[1], w, c1); pline(c, b[0], b[1], d[0], d[1], w, c2);
 }
 function hose(c, a, b, d) { pline(c, a[0], a[1], b[0], b[1], 2, "#2A2233"); pline(c, b[0], b[1], d[0], d[1], 2, "#2A2233"); }
@@ -2198,53 +2247,76 @@ function drawBow(c, hF, hB, f, drawn) {
     fr(c, x, y, 6, -1, 3, 3, "#FF4D7E", f); fr(c, x, y, 9, 0, 1, 1, "#FF4D7E", f);
   }
 }
+// овал с обводкой
+function ell(c, x, y, rx, ry, col, stroke) {
+  c.fillStyle = col; c.beginPath(); c.ellipse(x, y, rx, ry, 0, 0, 6.283); c.fill();
+  if (stroke) { c.strokeStyle = OL; c.lineWidth = .9; c.stroke(); }
+}
+// глаза, брови, румянец и рот — общая мимика Леры и Коли (X — сдвиг по взгляду)
+function faceVec(c, X, y, ex, o = {}) {
+  const eye = (ix, sc) => {
+    if (ex === "ko") { c.strokeStyle = OL; c.lineWidth = .7; c.beginPath(); c.moveTo(X(ix - 1) , y); c.lineTo(X(ix + 1), y + 2); c.moveTo(X(ix + 1), y); c.lineTo(X(ix - 1), y + 2); c.stroke(); return; }
+    if (ex === "hurt" || ex === "win") { c.strokeStyle = OL; c.lineWidth = .75; c.beginPath(); if (ex === "win") { c.moveTo(X(ix - 1.1), y + 1.6); c.quadraticCurveTo(X(ix), y - .2, X(ix + 1.1), y + 1.6); } else { c.moveTo(X(ix - 1.1), y + .2); c.lineTo(X(ix + 1), y + 1); c.lineTo(X(ix - 1.1), y + 1.8); } c.stroke(); return; }
+    ell(c, X(ix), y + 1, .95 * sc, 1.3 * sc, "#2A1A2A");
+    c.fillStyle = "#FFFFFF"; c.beginPath(); c.arc(X(ix + .35), y + .45, .38 * sc, 0, 6.283); c.fill();
+  };
+  eye(o.e1 || 4.2, 1); eye(o.e2 || .9, .8);
+  if (o.lashes && ex !== "ko") { c.strokeStyle = OL; c.lineWidth = .5; c.beginPath(); c.moveTo(X(5), y - .4); c.lineTo(X(5.9), y - 1.1); c.stroke(); }
+  if (ex === "attack") { c.strokeStyle = o.brow || OL; c.lineWidth = .7; c.beginPath(); c.moveTo(X(2.9), y - 1.6); c.lineTo(X(5.4), y - .9); c.stroke(); }
+  c.globalAlpha = .55; ell(c, X(5.3), y + 3.1, 1.3, .7, "#FF8FA8"); c.globalAlpha = 1;
+  c.strokeStyle = "#8A3040"; c.lineWidth = .7; c.lineCap = "round";
+  if (ex === "attack") ell(c, X(4.3), y + 5.1, .9, 1.1, "#8A2A3E");
+  else if (ex === "win") { c.fillStyle = "#B83A55"; c.beginPath(); c.moveTo(X(2.9), y + 4.3); c.quadraticCurveTo(X(4.3), y + 7, X(5.8), y + 4.2); c.closePath(); c.fill(); }
+  else if (ex === "hurt" || ex === "ko") { c.beginPath(); c.moveTo(X(3), y + 5.4); c.quadraticCurveTo(X(3.8), y + 4.7, X(4.6), y + 5.4); c.quadraticCurveTo(X(5.2), y + 6, X(5.8), y + 5.3); c.stroke(); }
+  else { c.beginPath(); c.moveTo(X(3.2), y + 4.6); c.quadraticCurveTo(X(4.3), y + 5.8, X(5.5), y + 4.5); c.stroke(); }
+}
 function kolyaHead(c, hx, hy, f, ex, F) {
-  const x = Math.round(hx), y = Math.round(hy), H = "#7A5232", HL = "#A0744A", S = "#F2C6A0", SD = "#D9A47E";
-  const spikes = [[-6, -9, 3, 3], [-2, -11, 3, 4], [2, -10, 3, 3], [-9, -5, 2, 3]];
-  spikes.forEach(s => fr(c, x, y, s[0] - 1, s[1] - 1, s[2] + 2, s[3] + 2, OL, f));
-  pell(c, x - f, y - 1, 8, 8, OL); pell(c, x + 2 * f, y + 1, 6, 6, OL);
-  spikes.forEach(s => fr(c, x, y, s[0], s[1], s[2], s[3], H, f));
-  pell(c, x - f, y - 1, 7, 7, H);
-  pell(c, x + 2 * f, y + 1, 5, 5, S);
-  fr(c, x, y, -1, 1, 2, 3, SD, f);
-  fr(c, x, y, -1, -5, 8, 2, H, f); fr(c, x, y, 1, -3, 2, 1, H, f); fr(c, x, y, 4, -3, 1, 2, H, f); fr(c, x, y, 6, -4, 1, 2, H, f);
-  fr(c, x, y, -4, -6, 4, 1, HL, f); fr(c, x, y, -1, -10, 2, 1, HL, f);
-  fr(c, x, y, 7, 2, 1, 2, SD, f);
-  const lens = F && F.state === "special" && F.t < (F.ult ? F.def.ult : F.def.sp).su ? (F.t % 4 < 2 ? "#FFFFFF" : "#FF8FB1") : "#CFE3F5";
-  fr(c, x, y, 2, 0, 5, 4, OL, f); fr(c, x, y, -2, 0, 3, 4, OL, f); fr(c, x, y, -4, 1, 2, 1, OL, f);
-  fr(c, x, y, 3, 1, 3, 2, lens, f); fr(c, x, y, -1, 1, 1, 2, lens, f);
-  if (ex === "ko") { fr(c, x, y, 3, 1, 1, 1, OL, f); fr(c, x, y, 5, 2, 1, 1, OL, f); fr(c, x, y, 5, 1, 1, 1, OL, f); fr(c, x, y, 3, 2, 1, 1, OL, f); }
-  else if (ex === "hurt" || ex === "win") fr(c, x, y, 3, 2, 3, 1, OL, f);
-  else if (lens === "#CFE3F5") fr(c, x, y, 4, 1, 1, 2, OL, f);
-  fr(c, x, y, 4, 4, 2, 1, "#F09AAE", f);
-  if (ex === "attack") fr(c, x, y, 4, 5, 2, 2, OL, f);
-  else if (ex === "hurt" || ex === "ko") fr(c, x, y, 3, 6, 3, 1, OL, f);
-  else if (ex === "win") { fr(c, x, y, 3, 5, 3, 1, OL, f); fr(c, x, y, 4, 6, 2, 1, "#E0607A", f); }
-  else fr(c, x, y, 4, 5, 2, 1, "#8A3A3A", f);
+  const X = d => hx + d * f, y = hy, H = "#7A5232", HL = "#A87C50", S = "#F2C6A0";
+  c.lineJoin = "round";
+  ell(c, X(1.6), y + 1.2, 6.2, 6.6, S, true);
+  c.globalAlpha = .35; ell(c, X(-1.5), y + 2.5, 2.5, 3.5, "#D9A47E"); c.globalAlpha = 1;
+  // растрёпанные волосы
+  c.fillStyle = H; c.strokeStyle = OL; c.lineWidth = .9;
+  c.beginPath(); c.moveTo(X(-6.5), y + 3.5);
+  c.quadraticCurveTo(X(-9.5), y - 1, X(-8), y - 4.5); c.lineTo(X(-9.5), y - 7); c.quadraticCurveTo(X(-6), y - 7.5, X(-5), y - 9);
+  c.quadraticCurveTo(X(-3.5), y - 12.5, X(-1), y - 10); c.quadraticCurveTo(X(1.5), y - 12, X(3.5), y - 9.5); c.quadraticCurveTo(X(6.5), y - 10, X(7), y - 6.5);
+  c.quadraticCurveTo(X(9), y - 4, X(7.5), y - 1.5); c.quadraticCurveTo(X(5.5), y - 4, X(3.5), y - 3.2); c.quadraticCurveTo(X(2), y - 1.2, X(.5), y - 2.6);
+  c.quadraticCurveTo(X(-1.5), y + .5, X(-3.2), y + .6); c.quadraticCurveTo(X(-4), y + 3.5, X(-6.5), y + 3.5); c.closePath(); c.fill(); c.stroke();
+  c.strokeStyle = HL; c.lineWidth = .8; c.beginPath(); c.moveTo(X(-5), y - 6); c.quadraticCurveTo(X(-2), y - 9, X(1.5), y - 8); c.moveTo(X(-6.5), y - 2); c.quadraticCurveTo(X(-5.5), y - 4, X(-3.5), y - 4.6); c.stroke();
+  // уши
+  ell(c, X(-2.6), y + 2, 1.2, 1.7, "#E8B48E", true);
+  faceVec(c, X, y + .4, ex, { brow: H });
+  // очки
+  const lens = F && F.state === "special" && F.t < (F.ult ? F.def.ult : F.def.sp).su ? (F.t % 4 < 2 ? "#FFFFFF" : "#FF8FB1") : "rgba(200,225,255,.45)";
+  const lx = Math.min(X(2.1), X(6.9)), bx = Math.min(X(-1.6), X(1.2));
+  c.fillStyle = lens; c.strokeStyle = OL; c.lineWidth = .8;
+  c.beginPath(); c.roundRect ? c.roundRect(lx, y - .6, 4.8, 3.8, 1.3) : c.rect(lx, y - .6, 4.8, 3.8); c.fill(); c.stroke();
+  c.beginPath(); c.roundRect ? c.roundRect(bx, y - .4, 2.8, 3.4, 1) : c.rect(bx, y - .4, 2.8, 3.4); c.fill(); c.stroke();
+  c.beginPath(); c.moveTo(X(1.2), y + .6); c.lineTo(X(2.1), y + .6); c.moveTo(X(-1.6), y + .6); c.lineTo(X(-3.6), y + 1.2); c.stroke();
+  c.strokeStyle = "rgba(255,255,255,.75)"; c.lineWidth = .5; c.beginPath(); c.moveTo(X(3), y + 2.4); c.lineTo(X(4.2), y + .1); c.stroke();
 }
 function leraHairBack(c, hx, hy, f) {
-  const x = Math.round(hx), y = Math.round(hy);
-  fr(c, x, y, -9, -1, 9, 18, OL, f);
-  fr(c, x, y, -8, 0, 7, 16, "#F2B65E", f);
-  fr(c, x, y, -8, 0, 2, 16, "#D89236", f);
-  fr(c, x, y, -5, 14, 3, 2, "#D89236", f);
+  const X = d => hx + d * f, y = hy;
+  c.lineJoin = "round"; c.fillStyle = "#E3A24B"; c.strokeStyle = OL; c.lineWidth = .9;
+  c.beginPath(); c.moveTo(X(-1), y - 7);
+  c.bezierCurveTo(X(-11), y - 6, X(-11), y + 6, X(-9.5), y + 15); c.quadraticCurveTo(X(-8.5), y + 18.5, X(-6), y + 17);
+  c.quadraticCurveTo(X(-4.5), y + 18.5, X(-3), y + 15.5); c.quadraticCurveTo(X(-2.5), y + 6, X(1), y); c.closePath(); c.fill(); c.stroke();
+  c.strokeStyle = "#FFD58A"; c.lineWidth = .9; c.beginPath(); c.moveTo(X(-7), y - 1); c.quadraticCurveTo(X(-8.5), y + 7, X(-7.3), y + 14); c.stroke();
+  c.strokeStyle = "#C98432"; c.beginPath(); c.moveTo(X(-4.5), y + 2); c.quadraticCurveTo(X(-5), y + 9, X(-4.4), y + 15); c.stroke();
 }
 function leraHead(c, hx, hy, f, ex) {
-  const x = Math.round(hx), y = Math.round(hy), H = "#F2B65E", HD = "#D89236", HL = "#FFE09A", S = "#F6CBA8";
-  pell(c, x - f, y - 1, 8, 8, OL); pell(c, x + 2 * f, y + 1, 6, 6, OL);
-  pell(c, x - f, y - 1, 7, 7, H);
-  fr(c, x, y, -7, 0, 2, 5, HD, f);
-  pell(c, x + 2 * f, y + 1, 5, 5, S);
-  fr(c, x, y, -1, -5, 8, 2, H, f); fr(c, x, y, 2, -3, 2, 1, H, f); fr(c, x, y, 5, -3, 2, 2, H, f);
-  fr(c, x, y, -4, -6, 5, 1, HL, f); fr(c, x, y, -6, -3, 1, 4, HL, f);
-  if (ex === "ko") { [[3, 0], [5, 0], [4, 1], [3, 2], [5, 2]].forEach(([a, b]) => fr(c, x, y, a, b, 1, 1, OL, f)); }
-  else if (ex === "hurt") { fr(c, x, y, 3, 1, 2, 1, OL, f); fr(c, x, y, 4, 0, 1, 1, OL, f); }
-  else if (ex === "attack") { fr(c, x, y, 3, 0, 2, 2, OL, f); fr(c, x, y, 3, 0, 1, 1, "#FFFFFF", f); fr(c, x, y, 0, 0, 1, 2, OL, f); }
-  else { fr(c, x, y, 3, 1, 2, 1, OL, f); fr(c, x, y, 5, 0, 1, 1, OL, f); fr(c, x, y, 0, 1, 1, 1, OL, f); }
-  fr(c, x, y, 3, 3, 2, 1, "#F59AB0", f);
-  if (ex === "attack") fr(c, x, y, 4, 5, 2, 2, "#B03050", f);
-  else if (ex === "win") fr(c, x, y, 3, 5, 3, 1, "#E0607A", f);
-  else fr(c, x, y, 4, 5, 2, 1, "#E0607A", f);
+  const X = d => hx + d * f, y = hy, H = "#F2B65E", HL = "#FFE7A8", S = "#F8D0AE";
+  c.lineJoin = "round";
+  ell(c, X(1.6), y + 1.2, 6, 6.5, S, true);
+  // волосы: макушка и чёлка
+  c.fillStyle = H; c.strokeStyle = OL; c.lineWidth = .9;
+  c.beginPath(); c.moveTo(X(-7), y + 5);
+  c.bezierCurveTo(X(-9.5), y - 6, X(1), y - 12, X(7), y - 4.5); c.quadraticCurveTo(X(8.6), y - 1.5, X(7.7), y + 1.5);
+  c.quadraticCurveTo(X(6.5), y - 2.2, X(4.2), y - 2.4); c.quadraticCurveTo(X(3.2), y - .6, X(1.6), y - 2); c.quadraticCurveTo(X(.5), y + .6, X(-1.6), y + .2);
+  c.quadraticCurveTo(X(-3.4), y + 3, X(-7), y + 5); c.closePath(); c.fill(); c.stroke();
+  c.strokeStyle = HL; c.lineWidth = 1; c.beginPath(); c.moveTo(X(-5), y - 4); c.quadraticCurveTo(X(-1), y - 8.5, X(4), y - 6.5); c.stroke();
+  c.strokeStyle = "#D89236"; c.lineWidth = .6; c.beginPath(); c.moveTo(X(1.5), y - 6); c.quadraticCurveTo(X(2.8), y - 4, X(2.4), y - 2.2); c.stroke();
+  faceVec(c, X, y + .5, ex, { lashes: true, brow: "#C98432" });
 }
 function drawHuman(c, RX, RY, f, P, F, ex, S) {
   const hip = [RX + P.bx * f, RY - S.hip + P.by];
@@ -2482,26 +2554,13 @@ FIGHTERS.forEach(d => { FBY[d.id] = d; });
 // Рисует бойца в его личный буфер 96×96; точка опоры (ноги) — (48, 88)
 // внешний чёрный контур → тёмный цвет соседних пикселей, плюс свет сверху и тень снизу
 function softRig(c) {
-  const im = c.getImageData(0, 0, 96, 96), d = im.data, W = 96;
-  const isOL = p => d[p + 3] > 200 && d[p] < 40 && d[p + 1] < 36 && d[p + 2] < 50;
-  const out = [];
-  for (let y = 1; y < 95; y++) for (let x = 1; x < 95; x++) {
-    const p = (y * W + x) * 4;
-    if (!isOL(p)) continue;
-    if (!(d[p - 4 + 3] < 10 || d[p + 4 + 3] < 10 || d[p - W * 4 + 3] < 10 || d[p + W * 4 + 3] < 10)) continue;
-    let r = 0, g = 0, b = 0, n = 0;
-    for (const q of [p - 4, p + 4, p - W * 4, p + W * 4, p - W * 4 - 4, p - W * 4 + 4, p + W * 4 - 4, p + W * 4 + 4]) if (d[q + 3] > 200 && !isOL(q)) { r += d[q]; g += d[q + 1]; b += d[q + 2]; n++; }
-    if (n) out.push(p, r / n * .42 + 10, g / n * .42 + 7, b / n * .42 + 24);
-  }
-  for (let i = 0; i < out.length; i += 4) { const p = out[i]; d[p] = out[i + 1]; d[p + 1] = out[i + 2]; d[p + 2] = out[i + 3]; }
-  c.putImageData(im, 0, 0);
   const g = c.createLinearGradient(0, 20, 0, 92);
-  g.addColorStop(0, "rgba(255,248,235,.14)"); g.addColorStop(.5, "rgba(255,255,255,0)"); g.addColorStop(1, "rgba(30,12,70,.28)");
+  g.addColorStop(0, "rgba(255,248,235,.16)"); g.addColorStop(.5, "rgba(255,255,255,0)"); g.addColorStop(1, "rgba(30,12,70,.3)");
   c.globalCompositeOperation = "source-atop"; c.fillStyle = g; c.fillRect(0, 0, 96, 96); c.globalCompositeOperation = "source-over";
 }
 function renderFighter(F) {
-  if (!F.buf) { F.buf = document.createElement("canvas"); F.buf.width = 96; F.buf.height = 96; }
-  const b = F.buf, c = b.getContext("2d", { willReadFrequently: true });
+  if (!F.buf) F.buf = hqCanvas(96, 96);
+  const b = F.buf, c = b.getContext("2d");
   c.clearRect(0, 0, 96, 96);
   F.def.draw(c, 48, 88, F.f, poseOf(F), F, exprOf(F));
   if (!reduced) softRig(c);
@@ -2526,8 +2585,7 @@ function renderFighter(F) {
 }
 function portraitCanvas(def, o = {}) {
   const F = { def, f: o.f || 1, state: o.state || "idle", t: o.t || 12, vy: 0, jumps: 0, flash: 0, frozen: 0, slow: 0, charm: 0 };
-  const b = renderFighter(F), c = document.createElement("canvas");
-  c.width = 64; c.height = 64;
+  const b = renderFighter(F), c = hqCanvas(64, 64);
   c.getContext("2d").drawImage(b, 16, 30, 64, 64, 0, 0, 64, 64);
   return c;
 }
@@ -2536,7 +2594,7 @@ FIGHTERS.forEach(d => {
   ICON_FN["fw_" + d.id] = () => portraitCanvas(d, { state: "win", t: 8 });
 });
 ICON_FN.fightCard = () => {
-  const c = document.createElement("canvas"); c.width = 96; c.height = 64;
+  const c = hqCanvas(96, 64);
   const x = c.getContext("2d");
   x.drawImage(portraitCanvas(FBY.kolya, { f: 1 }), -6, 0);
   x.drawImage(portraitCanvas(FBY.lera, { f: -1 }), 38, 0);
@@ -2860,7 +2918,7 @@ const FIN_SPR = {};
 const heart3 = () => FIN_SPR.heart || (FIN_SPR.heart = paint(SPR.heart, 3));
 function hold(F, state, t) { F.state = state; F.t = t; F.ult = false; }
 function heartPt(k, cx, cy, s) { const a = k * Math.PI * 2; return [cx + 16 * Math.pow(Math.sin(a), 3) * s, cy - (13 * Math.cos(a) - 5 * Math.cos(2 * a) - 2 * Math.cos(3 * a) - Math.cos(4 * a)) * s]; }
-function finText(c, s, x, y, col) { c.font = '8px "Press Start 2P", monospace'; c.textAlign = "center"; c.textBaseline = "middle"; c.fillStyle = OL; c.fillText(s, Math.round(x) + 1, Math.round(y) + 1); c.fillStyle = col; c.fillText(s, Math.round(x), Math.round(y)); }
+function finText(c, s, x, y, col) { c.font = '800 9px Unbounded, sans-serif'; c.textAlign = "center"; c.textBaseline = "middle"; c.fillStyle = OL; c.fillText(s, Math.round(x) + 1, Math.round(y) + 1); c.fillStyle = col; c.fillText(s, Math.round(x), Math.round(y)); }
 const FIN = {
   kolya: { name: "Лазерное сердце", len: 220,
     step(f) {
@@ -3319,7 +3377,7 @@ function aiInput(F, O) {
 /* --- сцена: кухня ночью --- */
 function seeded(seed) { let s = seed; return () => (s = (s * 16807) % 2147483647) / 2147483647; }
 function buildStage(W, H) {
-  const c = document.createElement("canvas"); c.width = W; c.height = H;
+  const c = hqCanvas(W, H, 2);
   const x = c.getContext("2d"), R = seeded(7), base = H - 180, floorY = base + 132;
   const g = x.createLinearGradient(0, 0, 0, floorY);
   g.addColorStop(0, "#160F28"); g.addColorStop(1, "#2E2148");
@@ -3359,7 +3417,7 @@ function buildStage(W, H) {
   shelf(8, wx - 14, base + 62); shelf(wx + ww + 14, W - 8, base + 62);
   shelf(8, wx - 14, base + 36); shelf(wx + ww + 14, W - 8, base + 36);
   // неоновая вывеска
-  x.font = '8px "Press Start 2P", monospace'; x.textBaseline = "top"; x.textAlign = "center";
+  x.font = '800 9px Unbounded, sans-serif'; x.textBaseline = "top"; x.textAlign = "center";
   x.shadowColor = "#FF5E8A"; x.shadowBlur = 6; x.fillStyle = "#FFB3C7"; x.fillText("ВКУСНАЯ БИТВА", W / 2, base + 8); x.shadowBlur = 0;
   // столешница и шкафчики
   const cy = base + 104;
@@ -3854,7 +3912,7 @@ const Fight = {
   render() {
     const c = this.ctx, W = G.W, H = G.H;
     if (!G.bg) return;
-    c.imageSmoothingEnabled = false;
+    c.imageSmoothingEnabled = true;
     c.save();
     if (G.shake > 0 && !reduced) c.translate(Math.round(rand(-G.shake, G.shake)), Math.round(rand(-G.shake, G.shake) * .6));
     c.drawImage(G.bg, 0, 0);
@@ -4201,7 +4259,7 @@ const BONUS = { heart: 15, cola: 10, choco: 10, kraut: 40 };
 
 /* --- Локации забега: каждые 250 м фон плавно меняется --- */
 const LOC_STEP = 500;
-function tileCanvas(w, h) { const c = document.createElement("canvas"); c.width = w; c.height = h; return [c, c.getContext("2d")]; }
+function tileCanvas(w, h) { const c = hqCanvas(w, h); return [c, c.getContext("2d")]; }
 function cityTile(tw, maxH, col, win, seed) {
   const [c, y] = tileCanvas(tw, maxH), Q = seeded(seed);
   for (let bx = 0; bx < tw - 6;) {
@@ -4608,7 +4666,7 @@ const Runner = {
   draw() {
     const c = this.ctx, W = this.W, H = this.H, G0 = this.GROUND, L = this.L;
     if (!this.assets || !L) return;
-    c.imageSmoothingEnabled = false;
+    c.imageSmoothingEnabled = true;
     c.save();
     if (this.shake > 0 && !reduced) c.translate(Math.round(rand(-this.shake, this.shake)), Math.round(rand(-this.shake, this.shake) * .5));
     if (this.fade < 1 && this.prevLoc >= 0) this.drawLoc(c, this.prevLoc, 1);
@@ -4632,7 +4690,7 @@ const Runner = {
     c.globalAlpha = 1;
     this.drawFront(c);
     vignette(c, W, H);
-    c.font = '8px "Press Start 2P", monospace'; c.textAlign = "center"; c.textBaseline = "middle";
+    c.font = '800 9px Unbounded, sans-serif'; c.textAlign = "center"; c.textBaseline = "middle";
     for (const tx of this.texts) { c.globalAlpha = 1 - tx.age / tx.life; c.fillStyle = OL; c.fillText(tx.s, Math.round(tx.x) + 1, Math.round(tx.y) + 1); c.fillStyle = "#FFD23F"; c.fillText(tx.s, Math.round(tx.x), Math.round(tx.y)); }
     c.globalAlpha = 1;
     c.restore();
@@ -4730,7 +4788,7 @@ const Runner = {
   drawCheer(c, ch) {
     const G0 = this.GROUND, x = Math.round(ch.x), k = this.spr.kolya, hop = this.t % 20 < 10 ? 0 : 1;
     c.drawImage(k, x, G0 - k.height - hop);
-    c.font = '8px "Press Start 2P", monospace'; c.textAlign = "center"; c.textBaseline = "middle";
+    c.font = '800 9px Unbounded, sans-serif'; c.textAlign = "center"; c.textBaseline = "middle";
     const tw = Math.ceil(c.measureText(ch.msg).width) + 8, bx = x + 6 - tw / 2, by = G0 - k.height - 22;
     px(c, bx - 1, by - 1, tw + 2, 14, OL); px(c, bx, by, tw, 12, "#FFF5E0"); px(c, x + 4, by + 12, 3, 3, "#FFF5E0");
     c.fillStyle = "#B0213A"; c.fillText(ch.msg, x + 6, by + 7);
@@ -5058,7 +5116,7 @@ const Tower = {
   /* --- отрисовка --- */
   sky(i) {
     if (this.skies[i]) return this.skies[i];
-    const th = TOWER_THEMES[i], c = document.createElement("canvas"); c.width = this.W; c.height = this.H;
+    const th = TOWER_THEMES[i], c = hqCanvas(this.W, this.H, 2);
     const x = c.getContext("2d"), g = x.createLinearGradient(0, 0, 0, this.H), R = seeded(30 + i);
     g.addColorStop(0, th.sky[0]); g.addColorStop(1, th.sky[1]);
     x.fillStyle = g; x.fillRect(0, 0, this.W, this.H);
@@ -5069,7 +5127,7 @@ const Tower = {
   // дальний план: парящие островки и облака, движутся медленнее камеры — даёт глубину
   decorTile(i) {
     if (this.decor[i]) return this.decor[i];
-    const th = TOWER_THEMES[i], c = document.createElement("canvas"); c.width = this.W; c.height = 480;
+    const th = TOWER_THEMES[i], c = hqCanvas(this.W, 480, 2);
     const x = c.getContext("2d"), R = seeded(50 + i);
     for (let k = 0; k < 7; k++) {
       const cx = Math.floor(R() * this.W), cy = 30 + Math.floor(R() * 420), w = 22 + Math.floor(R() * 40);
@@ -5177,7 +5235,7 @@ const Tower = {
   draw() {
     const c = this.ctx, W = this.W, H = this.H, L = this.L;
     if (!W || !L) return;
-    c.imageSmoothingEnabled = false;
+    c.imageSmoothingEnabled = true;
     c.save();
     if (this.shake > 0 && !reduced) c.translate(Math.round(rand(-this.shake, this.shake)), Math.round(rand(-this.shake, this.shake)));
     if (this.fade < 1 && this.prevTheme >= 0) this.drawTheme(c, this.prevTheme, 1);
@@ -5198,7 +5256,7 @@ const Tower = {
       for (let x = 0; x < W; x++) { const wv = Math.round(Math.sin((x + this.t * 1.5) * .15) * 1.5); px(c, x, cy + wv, 1, H - cy - wv + 2, "#5A1E14"); px(c, x, cy + wv, 1, 2, "#FFF5F0"); }
       px(c, 0, cy + 6, W, 2, "#8A3A2A");
       for (let k = 0; k < 8; k++) px(c, (k * 37 + this.t * (k % 3 + 1)) % W, cy + 6 + ((k * 23 + this.t) % Math.max(1, H - cy)), 2, 2, "#D9A07A");
-      if (cy < H - 4) { c.font = '8px "Press Start 2P", monospace'; c.textAlign = "center"; c.textBaseline = "middle"; c.fillStyle = "#FFF5F0"; c.fillText("КОЛА", W / 2, Math.min(H - 8, cy + 18)); }
+      if (cy < H - 4) { c.font = '800 9px Unbounded, sans-serif'; c.textAlign = "center"; c.textBaseline = "middle"; c.fillStyle = "#FFF5F0"; c.fillText("КОЛА", W / 2, Math.min(H - 8, cy + 18)); }
     }
     for (const p of this.parts) { c.globalAlpha = Math.max(0, 1 - p.age / p.life); px(c, p.x, this.sy(p.h), p.s, p.s, p.col); }
     c.globalAlpha = 1;
@@ -5208,7 +5266,7 @@ const Tower = {
   }
 };
 ICON_FN.towerIc = () => {
-  const c = document.createElement("canvas"); c.width = 48; c.height = 48;
+  const c = hqCanvas(48, 48);
   const x = c.getContext("2d"), g = x.createLinearGradient(0, 0, 0, 48);
   g.addColorStop(0, "#3A5AB0"); g.addColorStop(1, "#A8D0F5"); x.fillStyle = g; x.fillRect(0, 0, 48, 48);
   [[8, 26, 8, 20], [34, 8, 8, 22]].forEach(([px0, py0, w, h]) => { x.fillStyle = OL; x.fillRect(px0 - 1, py0 - 2, w + 2, h + 3); x.fillStyle = "#8A4038"; x.fillRect(px0, py0, w, h); x.fillStyle = "#D9A07A"; x.fillRect(px0 - 1, py0 - 2, w + 2, 2); });
@@ -5217,13 +5275,32 @@ ICON_FN.towerIc = () => {
 };
 
 /* ====== Атака хмуриков: выживалка с прокачкой ====== */
-const SV_BOSS_AT = 270 * 60;   // босс на 4:30
+// Кампания из пяти ночей: у каждой свои враги, события и босс в конце. После каждой ночи — сохранение.
+const SV_STAGES = [
+  { name: "НОЧЬ 1", sub: "ТИХИЙ ПАРК", len: 180, table: [["cloud", 10], ["clock", 5]], boss: "bigClock" },
+  { name: "НОЧЬ 2", sub: "ДОЖДЛИВАЯ АЛЛЕЯ", len: 180, table: [["cloud", 5], ["clock", 6], ["books", 5], ["drop", 6]], boss: "general" },
+  { name: "НОЧЬ 3", sub: "ГРОЗОВОЙ ЛЕС", len: 180, table: [["clock", 4], ["books", 6], ["drop", 5], ["zap", 3], ["brocc", 4]], boss: "brocKing" },
+  { name: "НОЧЬ 4", sub: "ТУМАННОЕ ОЗЕРО", len: 180, table: [["books", 5], ["brocc", 5], ["ghost", 4], ["zap", 3], ["drop", 5]], boss: "homework" },
+  { name: "НОЧЬ 5", sub: "ПОСЛЕДНИЙ РАССВЕТ", len: 210, table: [["brocc", 6], ["ghost", 6], ["zap", 5], ["drop", 5], ["books", 3], ["clock", 3]], boss: "king" }
+];
+const SV_BOSSES = {
+  bigClock: { name: "БУДИЛЬНИК-ВЕЛИКАН", hp: 1500, sp: .75, r: 18, spr: "clockBig", atk: ["charge", "ring"], every: 150 },
+  general: { name: "ТУЧА-ГЕНЕРАЛ", hp: 3200, sp: .6, r: 22, spr: "stormBig", atk: ["summon", "ring", "charge"], every: 130 },
+  brocKing: { name: "БРОККОЛИ-ВЕЛИКАН", hp: 6000, sp: .5, r: 22, spr: "broccBig", atk: ["slam", "summon", "ring"], every: 120 },
+  homework: { name: "ДОМАШКА-МОНСТР", hp: 6000, sp: .6, r: 20, spr: "booksBig", atk: ["spiral", "charge", "summon"], every: 135 },
+  king: { name: "КОРОЛЬ ХМУРИ", hp: 10000, sp: .65, r: 26, spr: "boss", atk: ["ring", "summon", "charge", "spiral", "slam"], every: 115 }
+};
+// хмурики крепнут с каждой минутой (t — минуты с начала)
+const svMul = t => 1 + t * .4 + t * t * .022;
 const SV_ENEMIES = {
   cloud: { hp: 7, sp: .55, dmg: 8, xp: 1, r: 8 },
   clock: { hp: 12, sp: .8, dmg: 10, xp: 2, r: 8 },
   books: { hp: 20, sp: .5, dmg: 12, xp: 3, r: 9 },
   brocc: { hp: 38, sp: .42, dmg: 14, xp: 5, r: 10 },
   storm: { hp: 160, sp: .38, dmg: 22, xp: 25, r: 16 },
+  drop: { hp: 5, sp: 1.15, dmg: 7, xp: 1, r: 6 },
+  zap: { hp: 28, sp: .5, dmg: 10, xp: 4, r: 9 },
+  ghost: { hp: 45, sp: .6, dmg: 14, xp: 6, r: 10 },
   boss: { hp: 2000, sp: .6, dmg: 30, xp: 0, r: 26 }
 };
 const SV_SPR = {
@@ -5239,6 +5316,12 @@ const SV_SPR = {
     ".kkkkk.", "kNNNNNk", "kNWWWNk", "kNWOWNk", "kNWgWNk", "kNNNNNk", ".kkkkk."] },
   chips: { pal: { k: OL, Y: "#FFD23F", R: "#E8322B", y: "#FFF1A8" }, rows: [
     "kkkkkkk", "kYYYYYk", "kRRRRRk", "kYyYYYk", "kYYyYYk", "kYYYYYk", "kkkkkkk"] },
+  drop: { pal: { k: OL, B: "#5DB8FF", b: "#2F7FD0", W: "#E6F4FF", e: "#120F1C" }, rows: [
+    "...k...", "..kBk..", ".kBBBk.", ".kWBBk.", "kBeBeBk", "kBBBBBk", "kbBkBbk", ".kbbbk.", "..kkk.."] },
+  ghost: { pal: { k: OL, W: "#F2F0FF", w: "#B9B3E0", e: "#3A2F6B" }, rows: [
+    "..kkkkk..", ".kWWWWWk.", "kWWWWWWWk", "kWeWWWeWk", "kWWWWWWWk", "kWWWeWWWk", "kWWeWeWWk", "kWWWWWWWk", "kwWwWwWwk", "kk.kk.kkk"] },
+  zap: { pal: { k: OL, M: "#4E4870", m: "#2E2848", e: "#FFD23F", Z: "#FFD23F" }, rows: [
+    "....kkkk....", "..kkMMMMkk..", ".kMMMMMMMMk.", "kMMeMMMMeMMk", "kMMMMeeMMMMk", ".kmmmmmmmmk.", "..kkkZkkkk..", "....ZZ......", "...ZZ.......", "....Z......."] },
   gift: { pal: { k: OL, R: "#E8322B", r: "#B8241E", Y: "#FFD23F" }, rows: [
     ".kk.kk.", "kYYkYYk", "kkkYkkk", "kRRYRRk", "kRRYRRk", "krrYrrk", "kkkkkkk"] }
 };
@@ -5331,6 +5414,8 @@ const Surv = {
     addEventListener("keyup", e => { this.keys[e.key.toLowerCase()] = false; });
     $("#svStart").addEventListener("click", () => { A.init(); this.start(); });
     $("#svAgain").addEventListener("click", () => { A.init(); this.start(); });
+    $("#svCont").addEventListener("click", () => { A.init(); this.resume(); });
+    $("#svCont2").addEventListener("click", () => { A.init(); this.resume(); });
     $("#svPause").addEventListener("click", () => this.pause());
     $("#svResume").addEventListener("click", () => { $("#svPaused").hidden = true; this.paused = false; this.last = performance.now(); });
     $("#svReroll").addEventListener("click", () => { if (this.rerolls > 0 && this.choosing) { this.rerolls--; SFX.whoosh(); this.offer(this.offerTitle, true); } });
@@ -5341,12 +5426,16 @@ const Surv = {
       storm: paint({ pal: { ...SPR.cloud.pal, M: "#6B7190", m: "#454A66" }, rows: SPR.cloud.rows }, 3),
       boss: paint({ pal: { ...SPR.cloud.pal, M: "#4E4870", m: "#2E2848", e: "#FF4D7E" }, rows: SPR.cloud.rows }, 4),
       crown: paint(SPR.crown, 2), cola: paint(SPR.cola, 1), star: paint(SPR.star, 1), kolya: paint(SPR.kolya, 1), heart: paint(SPR.heart, 1),
-      crab: paint(SV_SPR.crab, 2), roll: paint(SV_SPR.roll, 1), chips: paint(SV_SPR.chips, 1), gift: paint(SV_SPR.gift, 2)
+      crab: paint(SV_SPR.crab, 2), roll: paint(SV_SPR.roll, 1), chips: paint(SV_SPR.chips, 1), gift: paint(SV_SPR.gift, 2),
+      drop: paint(SV_SPR.drop, 2), ghost: paint(SV_SPR.ghost, 2), zap: paint(SV_SPR.zap, 2),
+      clockBig: paint(SV_SPR.clock, 5), broccBig: paint(SV_SPR.brocc, 4), booksBig: paint(SV_SPR.books, 5),
+      stormBig: paint({ pal: { ...SPR.cloud.pal, M: "#5B6188", m: "#3A3F5E", e: "#FFD23F" }, rows: SPR.cloud.rows }, 4)
     };
   },
   enter() {
     Player.suggest("surv");
     $("#svIntro").hidden = false; $("#svOver").hidden = true; $("#svUp").hidden = true; $("#svPaused").hidden = true;
+    this.syncButtons();
     this.resize(); this.reset(); this.running = false;
     this.last = performance.now(); this.acc = 0;
     cancelAnimationFrame(this.raf);
@@ -5367,17 +5456,40 @@ const Surv = {
     this.weapons = { arrow: { lvl: 1, cd: 30 } }; this.stats = {};
     this.t = 0; this.kills = 0; this.lvl = 1; this.xp = 0; this.need = this.xpNeed(1); this.rerolls = 2; this.pending = 0;
     this.spawnT = 0; this.bossOn = false; this.boss = null; this.shake = 0; this.banner = null; this.paused = false; this.choosing = false; this.won = false;
+    this.stage = 0; this.st = 0; this.ev = {}; this.waves = [];
     this.hud(); this.inv();
   },
   start() {
     this.reset(); this.running = true;
     $("#svIntro").hidden = true; $("#svOver").hidden = true;
-    this.banner = { text: "ВЫЖИВИ!", sub: "ХМУРИКИ ИДУТ", life: 110 };
+    this.stageBanner();
+  },
+  stageBanner() { const S = SV_STAGES[this.stage]; this.banner = { text: S.name, sub: S.sub, life: 130 }; },
+  // сохранение после каждой ночи: оружие, силы и уровень Леры
+  save() {
+    const L = this.L, keep = ["hp", "maxHp", "speed", "magnet", "cdMul", "dmgMul", "area", "amount", "dur", "crit", "regen", "armor", "xpMul", "revives"];
+    store.set("lera-surv-save", { stage: this.stage, t: this.t, lvl: this.lvl, xp: this.xp, need: this.need, kills: this.kills, rerolls: this.rerolls,
+      weapons: Object.fromEntries(Object.entries(this.weapons).map(([k, w]) => [k, { lvl: w.lvl, evo: !!w.evo }])), stats: this.stats, L: Object.fromEntries(keep.map(k => [k, L[k]])) });
+  },
+  saved() { return store.get("lera-surv-save", null); },
+  resume() {
+    const sv = this.saved(); if (!sv) { this.start(); return; }
+    this.reset();
+    Object.assign(this.L, sv.L); this.L.hp = this.L.maxHp;
+    Object.assign(this, { stage: sv.stage, t: sv.t, lvl: sv.lvl, xp: sv.xp, need: sv.need, kills: sv.kills, rerolls: Math.max(1, sv.rerolls), stats: { ...sv.stats } });
+    this.weapons = Object.fromEntries(Object.entries(sv.weapons).map(([k, w]) => [k, { lvl: w.lvl, evo: w.evo, cd: 10 }]));
+    this.running = true; $("#svIntro").hidden = true; $("#svOver").hidden = true;
+    this.inv(); this.hud(); this.stageBanner();
+  },
+  syncButtons() {
+    const sv = this.saved();
+    ["#svCont", "#svCont2"].forEach(id => { const b = $(id); b.hidden = !sv; if (sv) b.textContent = `Продолжить: ${SV_STAGES[sv.stage].name.toLowerCase().replace("ночь", "Ночь")}`; });
   },
   xpNeed(l) { return Math.round(5 + l * 3 + l * l * .35); },
   hud() {
     const s = Math.floor(this.t / 60), L = this.L;
     $("#svTime").textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+    $("#svStage").textContent = this.stage + 1;
     $("#svLvl").textContent = this.lvl; $("#svKills").textContent = this.kills;
     $("#svXp").style.width = Math.min(100, this.xp / this.need * 100) + "%";
     $("#svHp").style.width = Math.max(0, L.hp / L.maxHp * 100) + "%";
@@ -5388,31 +5500,65 @@ const Surv = {
       `<span class="sv-slot${w.evo ? " evo" : ""}"><img class="px" src="${icon(SV_WEAPONS[id].ic)}" alt="${SV_WEAPONS[id].name}"><i>${w.evo ? "★" : w.lvl}</i></span>`).join("");
   },
   /* --- враги --- */
-  spawnEnemy(type, ang) {
-    const d = SV_ENEMIES[type], L = this.L, a = ang == null ? rand(0, 6.283) : ang, rad = Math.hypot(this.W, this.H) / 2 + 20;
-    const mul = 1 + this.t / (60 * 60) * .45; // хмурики крепнут со временем
-    const hp = d.hp * (type === "boss" ? 1 : mul);
-    this.en.push({ type, x: L.x + Math.cos(a) * rad, y: L.y + Math.sin(a) * rad, hp, max: hp, sp: d.sp * rand(.9, 1.1), dmg: d.dmg, r: d.r, xp: d.xp, flash: 0, hitCd: {}, slow: 0, ph: rand(0, 6), shootT: 120 });
+  spawnEnemy(type, ang, rad0) {
+    const d = SV_ENEMIES[type], L = this.L, a = ang == null ? rand(0, 6.283) : ang, rad = rad0 || Math.hypot(this.W, this.H) / 2 + 20;
+    const mul = svMul(this.t / 3600), elite = type !== "storm" && Math.random() < .006 + this.stage * .006;
+    const hp = d.hp * mul * (elite ? 6 : 1);
+    const e = { type, x: L.x + Math.cos(a) * rad, y: L.y + Math.sin(a) * rad, hp, max: hp, sp: d.sp * rand(.9, 1.1) * (elite ? .85 : 1), dmg: d.dmg * (1 + this.stage * .12) * (elite ? 1.5 : 1), r: d.r * (elite ? 1.4 : 1), xp: d.xp * (elite ? 10 : 1), flash: 0, hitCd: {}, slow: 0, ph: rand(0, 6), shootT: rand(60, 160), elite };
+    this.en.push(e); return e;
+  },
+  spawnBoss() {
+    const k = SV_STAGES[this.stage].boss, B = SV_BOSSES[k];
+    const e = this.spawnEnemy("cloud", null, Math.hypot(this.W, this.H) / 2 + 30);
+    Object.assign(e, { type: "boss", bk: k, hp: B.hp, max: B.hp, sp: B.sp, r: B.r, dmg: 26 + this.stage * 8, xp: 0, elite: false, atkT: 120, atkI: 0 });
+    this.boss = e; this.bossOn = true;
+    this.banner = { text: "БОСС!", sub: B.name, life: 150 }; SFX.ko(); shakeSv(this, 6);
   },
   spawnTick() {
-    const t = this.t, sec = t / 60;
+    const S = SV_STAGES[this.stage], sec = this.st / 60;
+    // события посреди ночи
+    if (sec >= 55 && !this.ev.swarm && this.stage > 0) { this.ev.swarm = true; this.banner = { text: "РОЙ!", sub: "КАПЛИ ЛЕТЯТ", life: 90 }; const a = rand(0, 6.283); for (let i = 0; i < 22 + this.stage * 6; i++) this.spawnEnemy("drop", a + rand(-.25, .25), Math.hypot(this.W, this.H) / 2 + 20 + i * 4); }
+    if (sec >= 110 && !this.ev.ring) { this.ev.ring = true; this.banner = { text: "ОКРУЖЕНИЕ!", sub: "ПРОРВИСЬ НАРУЖУ", life: 90 }; const n = 26 + this.stage * 8; for (let i = 0; i < n; i++) this.spawnEnemy(this.stage < 2 ? "cloud" : "books", i / n * 6.283, 150); }
+    if (!this.bossOn && this.st >= S.len * 60 && !this.boss) this.spawnBoss();
     if (--this.spawnT > 0) return;
-    this.spawnT = this.bossOn ? 55 : 40;
+    this.spawnT = this.bossOn ? 60 : 38;
     if (this.en.length > 180) return;
-    const n = 1 + Math.floor(sec / 28) + (sec > 200 ? 2 : 0);
-    const table = [["cloud", 10]];
-    if (sec > 25) table.push(["clock", 7]);
-    if (sec > 70) table.push(["books", 6]);
-    if (sec > 140) table.push(["brocc", 5]);
-    const tot = table.reduce((s, [, w]) => s + w, 0);
-    const base = rand(0, 6.283);
+    const n = Math.max(1, Math.round((1 + sec / 45 + this.stage * .8) * (this.bossOn ? .5 : 1)));
+    const table = S.table, tot = table.reduce((a, [, w]) => a + w, 0), base = rand(0, 6.283);
     for (let i = 0; i < n; i++) {
-      let r = Math.random() * tot, k = "cloud";
+      let r = Math.random() * tot, k = table[0][0];
       for (const [nm, w] of table) { if ((r -= w) < 0) { k = nm; break; } }
-      this.spawnEnemy(k, sec > 100 && Math.random() < .4 ? base + rand(-.4, .4) : null);
+      this.spawnEnemy(k, Math.random() < .4 ? base + rand(-.4, .4) : null);
     }
     // грозовая туча с подарком: раз в 40 секунд
-    if (sec > 40 && t % 2400 < 40) this.spawnEnemy("storm");
+    if (this.t > 2400 && this.t % 2400 < 38) this.spawnEnemy("storm");
+  },
+  // атаки боссов
+  bossAI(e, d, dx, dy) {
+    const B = SV_BOSSES[e.bk], L = this.L;
+    if (e.tele > 0) { if (--e.tele === 0) { const a = Math.atan2(dy, dx); e.cvx = Math.cos(a) * 3.4; e.cvy = Math.sin(a) * 3.4; e.charge = 46; } return; }
+    if (e.spiral > 0) { e.spiral--; if (e.spiral % 6 === 0) for (let i = 0; i < 5; i++) { const a = i / 6 * 6.283 + e.spiral * .09; this.foeShot(e.x, e.y, a, 1.6); } }
+    if (--e.atkT > 0) return;
+    e.atkT = B.every - (e.hp < e.max * .4 ? 25 : 0);
+    const kind = B.atk[e.atkI++ % B.atk.length];
+    if (kind === "ring") { const n = 10 + this.stage; for (let i = 0; i < n; i++) this.foeShot(e.x, e.y, i / n * 6.283 + this.t * .01, 1.6); SFX.laser(); }
+    else if (kind === "charge") { e.tele = 40; SFX.whip(); }
+    else if (kind === "spiral") { e.spiral = 60; SFX.laser(); }
+    else if (kind === "summon") { const tb = SV_STAGES[this.stage].table; for (let i = 0; i < 4 + this.stage; i++) { const m = this.spawnEnemy(pick(tb)[0], null, 40); m.x = e.x + rand(-30, 30); m.y = e.y + rand(-30, 30); } SFX.teleport(); }
+    else if (kind === "slam") { this.waves.push({ x: e.x, y: e.y, r: 4, max: 170, dmg: 18 + this.stage * 5 }); shakeSv(this, 5); SFX.bump(); }
+  },
+  foeShot(x, y, a, v) { this.shots.push({ k: "bolt", foe: true, x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 240, dmg: 10 + this.stage * 2 }); },
+  bossDown(e) {
+    this.bossOn = false; this.boss = null;
+    FX.confetti(80); SFX.achieve(); shakeSv(this, 6);
+    for (let i = 0; i < 3; i++) this.drops.push({ k: "gift", x: e.x + rand(-20, 20), y: e.y + rand(-20, 20) });
+    for (let i = 0; i < 12; i++) this.gems.push({ x: e.x + rand(-20, 20), y: e.y + rand(-20, 20), v: 5 + this.stage * 5, pull: false });
+    if (this.stage >= SV_STAGES.length - 1) { this.win(); return; }
+    Toast.give("surv" + (this.stage + 1), `${SV_STAGES[this.stage].name[0]}${SV_STAGES[this.stage].name.slice(1).toLowerCase()} пройдена`, "star");
+    this.stage++; this.st = 0; this.ev = {};
+    this.L.hp = Math.min(this.L.maxHp, this.L.hp + Math.round(this.L.maxHp * .35));
+    this.banner = { text: SV_STAGES[this.stage].name, sub: SV_STAGES[this.stage].sub, life: 150 };
+    this.save();
   },
   /* --- урон --- */
   nearest(x, y, skip, maxD) {
@@ -5425,7 +5571,7 @@ const Surv = {
     const crit = Math.random() < this.L.crit;
     dmg = Math.round(dmg * this.L.dmgMul * (crit ? 2 : 1));
     e.hp -= dmg; e.flash = 4;
-    if (kx || ky) { const k = e.type === "boss" ? .1 : e.type === "storm" ? .3 : 1; e.x += kx * k; e.y += ky * k; }
+    if (kx || ky) { const k = e.type === "boss" ? .05 : e.type === "storm" || e.elite ? .3 : 1; e.x += kx * k; e.y += ky * k; }
     if (this.texts.length < 24 || crit) this.texts.push({ s: String(dmg), x: e.x + rand(-3, 3), y: e.y - e.r - 2, age: 0, life: 28, col: crit ? "#FFD23F" : null });
     if (e.hp <= 0) this.kill(e);
   },
@@ -5437,7 +5583,8 @@ const Surv = {
   kill(e) {
     e.dead = true; this.kills++;
     for (let i = 0; i < (e.type === "boss" ? 40 : 7); i++) this.part(e.x, e.y, rand(-1.5, 1.5), rand(-1.5, 1.5), pick(["#A3A9C2", "#6B7190", "#FFFFFF", "#FF8FB1"]), rand(14, 26), Math.random() < .3 ? 2 : 1);
-    if (e.type === "boss") { this.win(); return; }
+    if (e.type === "boss") { this.bossDown(e); return; }
+    if (e.elite) this.drops.push({ k: Math.random() < .4 ? "gift" : "cola", x: e.x, y: e.y });
     let xp = e.xp;
     while (xp > 0) { const v = xp >= 5 ? 5 : 1; this.gems.push({ x: e.x + rand(-4, 4), y: e.y + rand(-4, 4), v, pull: false }); xp -= v; }
     if (e.type === "storm") this.drops.push({ k: "gift", x: e.x, y: e.y });
@@ -5517,6 +5664,7 @@ const Surv = {
         w.cd = Math.round((evo ? 40 : 100) * L.cdMul);
         const n = 1 + Math.floor(lv / 2) + A_ + (evo ? 3 : 0);
         const vis = this.en.filter(e => Math.abs(e.x - L.x) < this.W / 2 && Math.abs(e.y - L.y) < this.H / 2);
+        if (this.boss && vis.includes(this.boss)) for (let k = 0; k < 3; k++) vis.push(this.boss);
         for (let i = 0; i < n; i++) { const e = vis.length ? pick(vis) : null; this.falls.push({ x: e ? e.x : L.x + rand(-80, 80), y: e ? e.y : L.y + rand(-80, 80), t: 26 + i * 5, R: (16 + lv * 2) * L.area, dmg: 14 + lv * 5 }); }
       } else if (id === "rolls") {
         w.cd = Math.round(70 * L.cdMul);
@@ -5662,21 +5810,23 @@ const Surv = {
     else L.state = "idle";
     L.t++; if (L.inv > 0) L.inv--; if (L.flash > 0) L.flash--;
     if (t % L.regen === 0 && L.hp < L.maxHp) L.hp++;
-    if (!this.bossOn && t >= SV_BOSS_AT) { this.bossOn = true; this.spawnEnemy("boss"); this.boss = this.en[this.en.length - 1]; this.banner = { text: "БОСС!", sub: "КОРОЛЬ ХМУРИ", life: 150 }; SFX.ko(); shakeSv(this, 6); }
+    this.st++;
     this.spawnTick();
     this.fire();
     for (const e of this.en) {
       if (e.flash > 0) e.flash--;
       if (e.frost > 0) e.frost--;
       const dx = L.x - e.x, dy = L.y - e.y, d = Math.hypot(dx, dy) || 1;
-      const sp = e.sp * (e.slow > 0 ? (this.weapons.frost && this.weapons.frost.evo && e.frost > 0 ? .15 : .45) : 1); if (e.slow > 0) e.slow--;
-      e.x += dx / d * sp + Math.sin(t * .05 + e.ph) * .15; e.y += dy / d * sp + Math.cos(t * .05 + e.ph) * .15;
-      if (d < e.r + 6 && L.inv <= 0 && this.hurt(e.dmg)) return;
-      if (e.type === "boss" && --e.shootT <= 0) {
-        e.shootT = 110;
-        for (let i = 0; i < 12; i++) { const a = i / 12 * 6.283 + t * .01; this.shots.push({ k: "bolt", foe: true, x: e.x, y: e.y, vx: Math.cos(a) * 1.6, vy: Math.sin(a) * 1.6, life: 220, dmg: 12 }); }
-        SFX.laser();
+      let sp = e.sp * (e.slow > 0 ? (this.weapons.frost && this.weapons.frost.evo && e.frost > 0 ? .15 : .45) : 1); if (e.slow > 0) e.slow--;
+      if (e.type === "zap") { if (d < 95) sp = -sp * .7; else if (d < 120) sp = 0; if (--e.shootT <= 0) { e.shootT = 170; this.foeShot(e.x, e.y, Math.atan2(dy, dx), 2); } }
+      if (e.type === "boss" && d > 150) sp *= 2.4; // от босса не убежать
+      if (e.charge > 0) { e.charge--; e.x += e.cvx; e.y += e.cvy; }
+      else if (!(e.tele > 0)) {
+        const wob = e.type === "ghost" ? .7 : .15;
+        e.x += dx / d * sp + Math.sin(t * .05 + e.ph) * wob; e.y += dy / d * sp + Math.cos(t * .05 + e.ph) * wob;
       }
+      if (e.type === "boss") this.bossAI(e, d, dx, dy);
+      if (d < e.r + 6 && L.inv <= 0 && this.hurt(e.dmg)) return;
       if (d > Math.hypot(this.W, this.H) * .9 && e.type !== "boss") { const a = rand(0, 6.283), rad = Math.hypot(this.W, this.H) / 2 + 20; e.x = L.x + Math.cos(a) * rad; e.y = L.y + Math.sin(a) * rad; }
     }
     for (let i = 0; i < this.en.length; i += 2) {
@@ -5713,6 +5863,12 @@ const Surv = {
       }
     }
     this.shots = this.shots.filter(s => s.life > 0);
+    for (const w of this.waves) {
+      w.r += 2.3;
+      const dd = Math.hypot(L.x - w.x, L.y - w.y);
+      if (Math.abs(dd - w.r) < 7 && L.inv <= 0 && this.hurt(w.dmg)) return;
+    }
+    this.waves = this.waves.filter(w => w.r < w.max);
     for (const p of this.puddles) {
       p.life--;
       if (p.life % 12 === 0) for (const e of this.en) if ((e.x - p.x) ** 2 + (e.y - p.y) ** 2 < (p.r + e.r) ** 2) { e.slow = 20; this.hit(e, p.dmg); }
@@ -5779,8 +5935,9 @@ const Surv = {
   },
   finish(won) {
     const s = Math.floor(this.t / 60), txt = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
-    const b = this.best, better = !b || (won && !b.won) || (won === !!b.won && s > b.s);
-    if (better) { this.best = { s, won, kills: this.kills, lvl: this.lvl }; setProg("survBest", this.best); }
+    const b = this.best, stage = won ? 5 : this.stage, better = !b || (b.stage || 0) < stage || ((b.stage || 0) === stage && s > b.s);
+    if (better) { this.best = { s, won, stage, kills: this.kills, lvl: this.lvl }; setProg("survBest", this.best); }
+    if (won) store.set("lera-surv-save", null);
     if (s >= 120) Toast.give("surv2", "Две минуты в строю", "heart");
     if (Object.values(this.weapons).some(w => w.evo)) Toast.give("survEvo", "Первая эволюция", "star");
     this.hud();
@@ -5788,8 +5945,9 @@ const Surv = {
       if (current !== "surv") return;
       $("#svOverTitle").textContent = won ? "ПОБЕДА!" : better && s > 0 ? "Новый рекорд!" : "Хмурики победили";
       $("#svOverText").textContent = won
-        ? `Лера продержалась ${txt} и прогнала Короля Хмури! Уровень ${this.lvl}, хмуриков: ${this.kills}.`
-        : `Лера продержалась ${txt}. Уровень ${this.lvl}, хмуриков: ${this.kills}. Босс приходит на 4:30.`;
+        ? `Все пять ночей позади! Лера продержалась ${txt} и прогнала Короля Хмури. Уровень ${this.lvl}, хмуриков: ${this.kills}.`
+        : `${SV_STAGES[this.stage].name[0]}${SV_STAGES[this.stage].name.slice(1).toLowerCase()}, ${txt} в бою. Уровень ${this.lvl}, хмуриков: ${this.kills}.` + (this.saved() ? " Можно продолжить с начала этой ночи — вся прокачка сохранилась." : "");
+      this.syncButtons();
       $("#svOver").hidden = false;
     }, won ? 1400 : 900);
   },
@@ -5806,7 +5964,7 @@ const Surv = {
   /* --- отрисовка --- */
   groundTile() {
     if (this.gt) return this.gt;
-    const c = document.createElement("canvas"); c.width = c.height = 96;
+    const c = hqCanvas(96, 96);
     const x = c.getContext("2d"), R = seeded(77);
     x.fillStyle = "#1E3A30"; x.fillRect(0, 0, 96, 96);
     for (let i = 0; i < 160; i++) { x.fillStyle = R() < .5 ? "#24463A" : "#183026"; x.fillRect(Math.floor(R() * 96), Math.floor(R() * 96), 2, 1); }
@@ -5818,7 +5976,7 @@ const Surv = {
   draw() {
     const c = this.ctx, W = this.W, H = this.H, L = this.L;
     if (!W || !L) return;
-    c.imageSmoothingEnabled = false;
+    c.imageSmoothingEnabled = true;
     c.save();
     if (this.shake > 0 && !reduced) c.translate(Math.round(rand(-this.shake, this.shake)), Math.round(rand(-this.shake, this.shake)));
     const cx = Math.round(L.x - W / 2), cy = Math.round(L.y - H / 2), T = this.t;
@@ -5830,6 +5988,8 @@ const Surv = {
       c.globalAlpha = .16 + .04 * Math.sin(T * .1); pell(c, L.x, L.y, Math.round(R), Math.round(R * .7), "#BFE3FF");
       c.globalAlpha = .3; c.strokeStyle = "#E6F4FF"; c.lineWidth = 1; c.beginPath(); c.ellipse(L.x, L.y, R, R * .7, 0, 0, 6.283); c.stroke(); c.globalAlpha = 1;
     }
+    for (const w of this.waves) { c.globalAlpha = 1 - w.r / w.max; c.strokeStyle = "#FF8A3D"; c.lineWidth = 4; c.beginPath(); c.ellipse(w.x, w.y, w.r, w.r * .7, 0, 0, 6.283); c.stroke(); }
+    c.globalAlpha = 1;
     for (const p of this.puddles) { c.globalAlpha = Math.min(1, p.life / 30); pell(c, p.x, p.y, Math.round(p.r), Math.round(p.r * .55), "#4E2C1B"); pell(c, p.x - 2, p.y - 1, Math.round(p.r * .7), Math.round(p.r * .35), "#6E4129"); px(c, p.x - p.r * .4, p.y - 2, 3, 1, "#9A6442"); }
     c.globalAlpha = 1;
     for (const m of this.mines) { const blink = m.arm <= 0 && T % 30 < 4; c.drawImage(this.spr.chips, Math.round(m.x - 3), Math.round(m.y - 7)); if (blink) px(c, m.x - 1, m.y - 9, 2, 2, "#FF4D7E"); }
@@ -5847,9 +6007,12 @@ const Surv = {
     let drawnL = false;
     for (const e of list) {
       if (!drawnL && e.y > L.y) { this.drawLera(c); drawnL = true; }
-      const s = this.spr[e.type], bob = Math.round(Math.sin(T * .15 + e.ph) * (e.type === "boss" ? 2 : 1));
+      const s = e.type === "boss" ? this.spr[SV_BOSSES[e.bk].spr] : this.spr[e.type], bob = Math.round(Math.sin(T * .15 + e.ph) * (e.type === "boss" ? 2 : 1));
+      if (e.tele > 0) { c.globalAlpha = .35 + .3 * Math.sin(T * .6); pline(c, e.x, e.y, L.x, L.y, 3, "#FF4D7E"); c.globalAlpha = 1; }
+      if (e.type === "ghost") c.globalAlpha = .72;
       const ex = Math.round(e.x - s.width / 2), ey = Math.round(e.y - s.height + e.r * .5 + bob);
-      if (e.type === "boss") c.drawImage(this.spr.crown, Math.round(e.x - 10), ey - 10);
+      if (e.type === "boss" && e.bk === "king") c.drawImage(this.spr.crown, Math.round(e.x - 10), ey - 10);
+      if (e.elite) { c.save(); c.translate(e.x, e.y - s.height / 2); c.scale(1.4, 1.4); c.drawImage(s, -s.width / 2, -s.height / 2); c.restore(); c.filter = "none"; c.globalAlpha = 1; continue; }
       if (e.flash > 0) { c.globalAlpha = .9; c.filter = "brightness(3)"; }
       else if (e.frost > 0) c.filter = "hue-rotate(160deg) saturate(.5) brightness(1.3)";
       c.drawImage(s, ex, ey);
@@ -5948,7 +6111,9 @@ const Surv = {
       x.fillStyle = "rgba(255,255,255,.75)"; x.shadowColor = "rgba(255,180,220,.9)"; x.shadowBlur = 10;
       x.beginPath(); x.arc(j.ox + dx * m, j.oy + dy * m, 8, 0, 6.283); x.fill(); x.restore();
     }
-    if (this.bossOn && this.boss && !this.boss.dead) Post.text(h, "КОРОЛЬ ХМУРИ", W / 2 + cx, 29 + cy, 6, { cx, cy, weight: 800, cols: ["#FFFFFF", "#D9C8FF"], glow: "rgba(183,156,255,.9)" });
+    for (const w of this.waves) Post.glow(h, w.x, w.y, w.r * 1.1, "255,140,60", .25 * (1 - w.r / w.max));
+    for (const e of this.en) if (e.elite) Post.glow(h, e.x, e.y - e.r, e.r * 2.2, "255,210,63", .3);
+    if (this.bossOn && this.boss && !this.boss.dead) Post.text(h, SV_BOSSES[this.boss.bk].name, W / 2 + cx, 29 + cy, 6, { cx, cy, weight: 800, cols: ["#FFFFFF", "#D9C8FF"], glow: "rgba(183,156,255,.9)" });
     if (this.banner) { const a = Math.min(1, this.banner.life / 20); Post.text(h, this.banner.text, W / 2, BY, 14, { a }); Post.text(h, this.banner.sub, W / 2, BY + 19, 6.5, { a, weight: 700, cols: ["#FFFFFF", "#E2DCFF"], glow: "rgba(150,120,255,.85)" }); }
     Post.end(h);
   },
@@ -5975,7 +6140,7 @@ function vignette(c, W, H) {
   c.drawImage(vigCache[key], 0, 0);
 }
 ICON_FN.survIc = () => {
-  const c = document.createElement("canvas"); c.width = 48; c.height = 48;
+  const c = hqCanvas(48, 48);
   const x = c.getContext("2d");
   x.fillStyle = "#1E3A30"; x.fillRect(0, 0, 48, 48);
   const g = x.createRadialGradient(24, 26, 4, 24, 26, 26); g.addColorStop(0, "rgba(255,240,200,.25)"); g.addColorStop(1, "rgba(0,0,0,.5)"); x.fillStyle = g; x.fillRect(0, 0, 48, 48);
@@ -6033,7 +6198,7 @@ const Intro = {
 const LEVELS = [
   { id: "fight", title: "Вкусная битва", text: "Файтинг на 10 бойцов: суперсилы, ультры, добивания и турнир за кубок.", ic: "fightCard", wide: true, cls: "fight", stat: () => [prog.fightWins ? `ПОБЕД: ${prog.fightWins}` : "", prog.cups ? `КУБКОВ: ${Object.keys(prog.cups).length}/10` : ""].filter(Boolean).join(" · ") },
   { id: "tower", title: "Небесный подъём", text: "Прыгай с колонны на колонну всё выше в небо и убегай от колы, которая поднимается снизу.", ic: "towerIc", wide: true, stat: () => prog.towerBest ? `РЕКОРД: ${prog.towerBest} М` : "" },
-  { id: "surv", title: "Атака хмуриков", text: "Выживалка: толпы хмуриков, автострельба и прокачка Леры после каждого уровня.", ic: "survIc", wide: true, isNew: true, stat: () => prog.survBest ? (prog.survBest.won ? "КОРОЛЬ ХМУРИ ПОВЕРЖЕН ✓" : `РЕКОРД: ${Math.floor(prog.survBest.s / 60)}:${String(prog.survBest.s % 60).padStart(2, "0")}`) : "" },
+  { id: "surv", title: "Атака хмуриков", text: "Пять ночей выживания: толпы хмуриков, боссы, 13 видов оружия и эволюции.", ic: "survIc", wide: true, isNew: true, stat: () => prog.survBest ? (prog.survBest.won && prog.survBest.stage === 5 ? "ВСЕ 5 НОЧЕЙ ✓" : `ДОШЛА ДО НОЧИ ${Math.min(5, (prog.survBest.stage || 0) + 1)}`) : "" },
   { id: "catch", title: "Вкусный дождь", text: "Лови колу, шоколад и капусту.", ic: "cola", stat: () => prog.catch ? "ПРОЙДЕН ✓" : "" },
   { id: "runner", title: "Крылатый забег", text: "Пять локаций и хитрые связки препятствий. Крылья помогут.", ic: "wing", isNew: true, stat: () => prog.runnerBest ? `РЕКОРД: ${prog.runnerBest} М` : "" },
   { id: "dance", title: "Танцпол", text: "Восемь движений под музыку.", ic: "ball", stat: () => prog.dance ? "ПРОЙДЕН ✓" : "" },
@@ -6098,7 +6263,7 @@ const Game = {
     const r = this.stage.getBoundingClientRect(), d = Math.min(window.devicePixelRatio || 1, 2);
     this.W = r.width; this.H = r.height;
     this.cv.width = Math.round(r.width * d); this.cv.height = Math.round(r.height * d);
-    this.ctx.setTransform(d, 0, 0, d, 0, 0); this.ctx.imageSmoothingEnabled = false;
+    this.ctx.setTransform(d, 0, 0, d, 0, 0); this.ctx.imageSmoothingEnabled = true;
     this.S = clamp(Math.round(this.W / 100), 3, 6); this.PS = this.S + 1;
     ["cola", "choco", "kraut", "heart", "cloud"].forEach(k => { this.spr[k] = paint(SPR[k], this.S); });
     this.spr.lera = paint(SPR.lera, this.PS);
@@ -6117,6 +6282,37 @@ const Game = {
       this.glows[k] = g;
     });
     this.flies = Array.from({ length: 10 }, () => ({ x: rand(0, this.W), y: rand(this.groundY * .45, this.groundY - 10), ph: rand(0, 6) }));
+  },
+  // ночной парк: кусты, деревья и фонари за спиной у Леры
+  buildBack() {
+    const W = this.W, gy = this.groundY, S = this.S, c = document.createElement("canvas");
+    c.width = Math.ceil(W); c.height = Math.ceil(gy);
+    const x = c.getContext("2d"), R = seededSky(31);
+    for (let i = -1; i < W / (S * 22) + 1; i++) {
+      const tx = i * S * 22 + R() * S * 8, th = S * (14 + R() * 10), tw = S * (9 + R() * 6);
+      x.fillStyle = "rgba(26,18,52,.85)";
+      x.fillRect(Math.round(tx + tw / 2 - S), Math.round(gy - th * .45), S * 2, Math.round(th * .45));
+      for (let k = 0; k < 4; k++) { const r = tw * (.45 + R() * .25); x.beginPath(); x.arc(tx + tw / 2 + (R() - .5) * tw * .6, gy - th * .55 - k * S * 2.5, r, 0, 6.283); x.fill(); }
+    }
+    for (let i = 0; i < W / (S * 9); i++) { x.fillStyle = "rgba(34,24,66,.9)"; x.beginPath(); x.arc(i * S * 9 + R() * S * 4, gy, S * (3 + R() * 3), Math.PI, 0); x.fill(); }
+    const lamps = Math.max(2, Math.round(W / 180));
+    for (let i = 0; i < lamps; i++) {
+      const lx = Math.round((i + .5) * W / lamps), lh = S * 22;
+      const g = x.createRadialGradient(lx, gy - lh, 2, lx, gy - lh, S * 16);
+      g.addColorStop(0, "rgba(255,214,130,.45)"); g.addColorStop(1, "rgba(255,214,130,0)"); x.fillStyle = g; x.fillRect(lx - S * 16, gy - lh - S * 16, S * 32, S * 32);
+      x.fillStyle = "#1A1236"; x.fillRect(lx - Math.round(S / 2), gy - lh, S, lh); x.fillRect(lx - S * 2, gy - lh - S, S * 4, S);
+      x.fillStyle = "#FFE7A8"; x.fillRect(lx - S, gy - lh - S * 3, S * 2, S * 2);
+    }
+    return c;
+  },
+  buildGround() {
+    const W = this.W, B = this.B, c = hqCanvas(Math.ceil(W), B * 2, 2), x = c.getContext("2d"), R = seededSky(9);
+    const g = x.createLinearGradient(0, 0, 0, B * 2);
+    g.addColorStop(0, "#6FD35A"); g.addColorStop(.18, "#3E9A3A"); g.addColorStop(.26, "#7A4A2E"); g.addColorStop(1, "#3A2216");
+    x.fillStyle = g; x.fillRect(0, 0, W, B * 2);
+    for (let i = 0; i < W / 3; i++) { const gx = R() * W, gh = 3 + R() * 7; x.strokeStyle = R() < .5 ? "#8BE06A" : "#4FB040"; x.lineWidth = 1.4; x.lineCap = "round"; x.beginPath(); x.moveTo(gx, B * .45); x.quadraticCurveTo(gx + 2, B * .45 - gh * .6, gx + (R() - .5) * 5, B * .45 - gh); x.stroke(); }
+    for (let i = 0; i < W / 22; i++) { x.fillStyle = `rgba(30,16,10,${.25 + R() * .3})`; x.beginPath(); x.ellipse(R() * W, B * .8 + R() * B * 1.1, 2 + R() * 4, 1.5 + R() * 2.5, 0, 0, 6.283); x.fill(); }
+    return c;
   },
   // ночной парк: кусты, деревья и фонари за спиной у Леры
   buildBack() {
@@ -6256,7 +6452,7 @@ const Game = {
     c.save();
     c.clearRect(0, 0, W, H);
     if (this.shake > 0) c.translate(rand(-this.shake, this.shake) * .5, rand(-this.shake, this.shake) * .5);
-    c.imageSmoothingEnabled = false;
+    c.imageSmoothingEnabled = true;
     if (this.back) c.drawImage(this.back, 0, 0);
     const tt = this.elapsed;
     for (const f of this.flies) {
@@ -6283,7 +6479,7 @@ const Game = {
     const flap = Math.sin(this.elapsed * 14) > 0 ? 0 : P;
     c.drawImage(this.spr.wings, px0 - 3 * P, py + 4 * P + flap);
     c.drawImage(this.spr.lera, px0, py);
-    c.font = `${Math.max(8, S * 2)}px "Press Start 2P", monospace`;
+    c.font = `800 ${Math.max(8, S * 2)}px Unbounded, sans-serif`;
     c.textAlign = "center"; c.textBaseline = "bottom";
     const tagW = c.measureText("ЛЕРА").width + 10, tagX = px0 + this.pw / 2, tagY = py - S;
     c.fillStyle = "rgba(13,14,32,.6)"; c.fillRect(tagX - tagW / 2, tagY - S * 2 - 8, tagW, S * 2 + 8);
@@ -6292,7 +6488,7 @@ const Game = {
     c.fillStyle = "rgba(0,0,0,.25)"; c.fillRect(px0 + 2 * P, this.groundY, 8 * P, Math.max(2, S));
     for (const p of this.parts) { c.globalAlpha = Math.max(0, 1 - p.age / p.life); c.fillStyle = p.c; c.fillRect(p.x | 0, p.y | 0, p.s, p.s); }
     c.globalAlpha = 1;
-    c.font = `${Math.max(10, S * 3)}px "Press Start 2P", monospace`;
+    c.font = `800 ${Math.max(10, S * 3)}px Unbounded, sans-serif`;
     c.textBaseline = "middle";
     for (const t of this.texts) {
       c.globalAlpha = Math.max(0, 1 - t.age / t.life);
