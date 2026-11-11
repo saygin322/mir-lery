@@ -45,6 +45,7 @@ img.px,.px img,.p,canvas.px{image-rendering:auto}
 #app{position:relative;height:100%;overflow:hidden;display:flex;flex-direction:column;background:linear-gradient(180deg,var(--sky-top) 0%,var(--sky-mid) 58%,var(--sky-low) 100%)}
 #stars,#fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 #starsHi{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#stars{filter:blur(1.5px)}
 #fx{z-index:15}
 #area{position:relative;flex:1;min-height:0}
 
@@ -500,6 +501,27 @@ img.px,.px img,.p,canvas.px{image-rendering:auto}
   .letter.play p{animation-duration:.01s;animation-delay:0s}
 }
 
+
+/* Гардероб и секретный уровень */
+.w-prev{width:100%;height:clamp(200px,34vh,300px);display:block}
+.w-lists{display:flex;flex-direction:column;gap:10px}
+.w-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.w-opt{display:flex;flex-direction:column;align-items:flex-start;gap:5px;padding:10px;border:0;cursor:pointer;text-align:left;color:var(--ink);background:var(--glass);border-radius:14px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+.w-opt b{font:800 13px/1.2 var(--font-body)}
+.w-opt small{font-size:11px;line-height:1.3;color:var(--muted)}
+.w-opt.on{box-shadow:0 0 0 2px var(--gold),0 0 18px rgba(255,210,63,.45)}
+.w-opt.locked{opacity:.6}
+.w-opt.nope{animation:shake .35s}
+.w-sw{display:block;width:30px;height:30px;border-radius:50%;box-shadow:inset 0 0 0 2px rgba(255,255,255,.4),0 3px 8px rgba(0,0,0,.35)}
+.w-sw.st-long{background:linear-gradient(180deg,#F2B65E 60%,transparent 60%),radial-gradient(circle at 50% 30%,#F8D0AE 40%,#F2B65E 41%)}
+.w-sw.st-pony,.w-sw.st-bob,.w-sw.st-braids{background:radial-gradient(circle at 50% 45%,#F8D0AE 35%,#F2B65E 36%)}
+.lvl.wardrobe{background:linear-gradient(135deg,rgba(255,120,180,.5),rgba(120,80,220,.5))}
+.lvl.secret{background:linear-gradient(135deg,rgba(20,20,70,.8),rgba(120,60,140,.6));box-shadow:0 0 0 1px rgba(255,210,63,.45),0 0 26px rgba(255,210,63,.18)}
+.lv-ic.locked{filter:grayscale(1) brightness(.6)}
+.secret-list{margin:0;padding:0;list-style:none;display:grid;gap:6px;font-size:15px}
+.secret-list li{color:var(--muted)}
+.secret-list li.ok{color:var(--mint)}
+.roof-note{font:600 26px/1.3 var(--font-hand);color:var(--ink)}
 /* ====== Графика 2.0: стекло, свет и мягкие формы ====== */
 :root{--glass:linear-gradient(160deg,rgba(78,62,150,.52),rgba(26,20,60,.62));--glass-b:rgba(255,255,255,.13);--rad:16px}
 body{-webkit-font-smoothing:antialiased}
@@ -659,6 +681,14 @@ body{-webkit-font-smoothing:antialiased}
     </section>
 
     <!-- Меню -->
+    <div class="overlay" id="secretInfo" hidden style="position:fixed;z-index:25">
+      <div class="panel">
+        <h2>Секретный уровень</h2>
+        <p>Он откроется, когда будет выполнено всё это:</p>
+        <ul class="secret-list" id="secretList"></ul>
+        <button class="btn" id="secretOk" type="button">Понятно</button>
+      </div>
+    </div>
     <section class="scene" id="s-menu" hidden>
       <div class="col">
         <div>
@@ -927,6 +957,39 @@ body{-webkit-font-smoothing:antialiased}
       </div>
     </section>
 
+    <!-- Гардероб Леры -->
+    <section class="scene" id="s-wardrobe" hidden>
+      <header class="hud"><div class="hud-row"><span>ГАРДЕРОБ ЛЕРЫ</span><span>открыто <b id="wCount">1</b></span></div></header>
+      <div class="col">
+        <canvas class="w-prev" id="wcv" aria-label="Лера в выбранном образе"></canvas>
+        <div id="wLists" class="w-lists"></div>
+        <button class="btn ghost" data-go="menu" type="button">В меню</button>
+      </div>
+    </section>
+
+    <!-- Секретный уровень -->
+    <section class="scene fixed" id="s-roof" hidden>
+      <header class="hud"><div class="hud-row"><span>КРЫША ПОД ЗВЁЗДАМИ</span><span>желаний <b id="roofCount">0</b>/5</span></div></header>
+      <div class="rstage" id="roofStage">
+        <div class="pix-box" id="roofBox"><div class="pix-wrap" id="roofWrap"><canvas class="px" id="roofcv" width="300" height="300"></canvas></div></div>
+        <p class="rhint">Когда по небу летит звезда — нажми на экран и загадай желание.</p>
+        <div class="overlay" id="roofIntro">
+          <div class="panel">
+            <h2>Крыша под звёздами</h2>
+            <p>Ты прошла весь мир. Теперь можно просто посидеть вдвоём на крыше, послушать город и поймать пять падающих звёзд.</p>
+            <button class="btn gold" id="roofStart" type="button">Смотреть на звёзды</button>
+          </div>
+        </div>
+        <div class="overlay" id="roofEnd" hidden>
+          <div class="panel">
+            <h2>Все желания загаданы</h2>
+            <p class="roof-note" id="roofNote"></p>
+            <button class="btn" data-go="menu" type="button">В меню</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Финал -->
     <section class="scene" id="s-final" hidden>
       <div class="col">
@@ -974,6 +1037,9 @@ const CONFIG = {
     "Пусть у тебя всегда будет холодная кола, вкусный шоколад, хрустящая капуста, музыка для танцев и победы во всех играх.",
     "Я очень тебя люблю и буду рядом на каждом новом уровне."
   ],
+  // желания на падающие звёзды в секретном уровне (коротко, чтобы влезали в строку)
+  wishes: ["Чтобы ты всегда улыбалась", "Чтобы мы съездили к морю", "Чтобы кола не заканчивалась", "Сто тысяч вечеров вместе", "Чтобы ты была рядом всегда"],
+  roofNote: "Я загадал все желания, но главное уже сбылось — у меня есть ты.",
   // что спрятано в звёздах
   reasons: [
     "Ты красоточка.",
@@ -1606,7 +1672,7 @@ const Toast = {
 
 /* ====== Сцены ====== */
 const scenes = {};
-["intro", "menu", "catch", "dance", "stars", "runner", "tower", "fight", "surv", "final"].forEach(k => { scenes[k] = $("#s-" + k); });
+["intro", "menu", "catch", "dance", "stars", "runner", "tower", "fight", "surv", "wardrobe", "roof", "final"].forEach(k => { scenes[k] = $("#s-" + k); });
 const Scenes = {};
 let current = null;
 function go(name) {
@@ -2301,28 +2367,85 @@ function kolyaHead(c, hx, hy, f, ex, F) {
   c.beginPath(); c.moveTo(X(1.2), y + .6); c.lineTo(X(2.1), y + .6); c.moveTo(X(-1.6), y + .6); c.lineTo(X(-3.6), y + 1.2); c.stroke();
   c.strokeStyle = "rgba(255,255,255,.75)"; c.lineWidth = .5; c.beginPath(); c.moveTo(X(3), y + 2.4); c.lineTo(X(4.2), y + .1); c.stroke();
 }
+// Причёски Леры: long — длинные, pony — хвостик, bob — каре, braids — косички. Цвет волос — LERA_S.hc: [основной, тень, блик, прядь]
 function leraHairBack(c, hx, hy, f) {
-  const X = d => hx + d * f, y = hy;
-  c.lineJoin = "round"; c.fillStyle = "#E3A24B"; c.strokeStyle = OL; c.lineWidth = .9;
-  c.beginPath(); c.moveTo(X(-1), y - 7);
+  const X = d => hx + d * f, y = hy, [H, HD, HL] = LERA_S.hc, st = LERA_S.style;
+  c.lineJoin = "round"; c.lineCap = "round"; c.strokeStyle = OL; c.lineWidth = .9;
+  if (st === "bob") {
+    c.fillStyle = HD; c.beginPath(); c.moveTo(X(-1), y - 7); c.bezierCurveTo(X(-10), y - 6, X(-10.5), y + 4, X(-8), y + 7); c.quadraticCurveTo(X(-5), y + 8.5, X(-2), y + 6); c.quadraticCurveTo(X(-1.5), y + 1, X(1), y); c.closePath(); c.fill(); c.stroke();
+    return;
+  }
+  if (st === "pony") {
+    c.fillStyle = HD; c.beginPath(); c.moveTo(X(-5), y - 7);
+    c.bezierCurveTo(X(-13), y - 9, X(-14), y + 2, X(-11), y + 10); c.quadraticCurveTo(X(-10), y + 13, X(-8), y + 11.5);
+    c.quadraticCurveTo(X(-10.5), y + 3, X(-6), y - 3); c.closePath(); c.fill(); c.stroke();
+    c.strokeStyle = HL; c.lineWidth = .8; c.beginPath(); c.moveTo(X(-9), y - 5); c.quadraticCurveTo(X(-12), y + 1, X(-10.5), y + 8); c.stroke();
+    ell(c, X(-5.5), y - 5.5, 1.5, 1.5, "#FF5E8A", true);
+    return;
+  }
+  if (st === "braids") {
+    for (const bx of [-6.5, -3.5]) {
+      for (let k = 0; k < 5; k++) ell(c, X(bx - k * .35), y + 1 + k * 3, 1.9 - k * .12, 1.8, k % 2 ? HD : H, true);
+      ell(c, X(bx - 1.9), y + 15.5, 1.2, 1, "#FF5E8A", true);
+    }
+    return;
+  }
+  c.fillStyle = HD; c.beginPath(); c.moveTo(X(-1), y - 7);
   c.bezierCurveTo(X(-11), y - 6, X(-11), y + 6, X(-9.5), y + 15); c.quadraticCurveTo(X(-8.5), y + 18.5, X(-6), y + 17);
   c.quadraticCurveTo(X(-4.5), y + 18.5, X(-3), y + 15.5); c.quadraticCurveTo(X(-2.5), y + 6, X(1), y); c.closePath(); c.fill(); c.stroke();
-  c.strokeStyle = "#FFD58A"; c.lineWidth = .9; c.beginPath(); c.moveTo(X(-7), y - 1); c.quadraticCurveTo(X(-8.5), y + 7, X(-7.3), y + 14); c.stroke();
-  c.strokeStyle = "#C98432"; c.beginPath(); c.moveTo(X(-4.5), y + 2); c.quadraticCurveTo(X(-5), y + 9, X(-4.4), y + 15); c.stroke();
+  c.strokeStyle = HL; c.lineWidth = .9; c.beginPath(); c.moveTo(X(-7), y - 1); c.quadraticCurveTo(X(-8.5), y + 7, X(-7.3), y + 14); c.stroke();
+  c.strokeStyle = LERA_S.hc[3]; c.beginPath(); c.moveTo(X(-4.5), y + 2); c.quadraticCurveTo(X(-5), y + 9, X(-4.4), y + 15); c.stroke();
 }
 function leraHead(c, hx, hy, f, ex) {
-  const X = d => hx + d * f, y = hy, H = "#F2B65E", HL = "#FFE7A8", S = "#F8D0AE";
+  const X = d => hx + d * f, y = hy, [H, , HL, HS] = LERA_S.hc, S = "#F8D0AE";
   c.lineJoin = "round";
   ell(c, X(1.6), y + 1.2, 6, 6.5, S, true);
-  // волосы: макушка и чёлка
   c.fillStyle = H; c.strokeStyle = OL; c.lineWidth = .9;
   c.beginPath(); c.moveTo(X(-7), y + 5);
   c.bezierCurveTo(X(-9.5), y - 6, X(1), y - 12, X(7), y - 4.5); c.quadraticCurveTo(X(8.6), y - 1.5, X(7.7), y + 1.5);
   c.quadraticCurveTo(X(6.5), y - 2.2, X(4.2), y - 2.4); c.quadraticCurveTo(X(3.2), y - .6, X(1.6), y - 2); c.quadraticCurveTo(X(.5), y + .6, X(-1.6), y + .2);
   c.quadraticCurveTo(X(-3.4), y + 3, X(-7), y + 5); c.closePath(); c.fill(); c.stroke();
   c.strokeStyle = HL; c.lineWidth = 1; c.beginPath(); c.moveTo(X(-5), y - 4); c.quadraticCurveTo(X(-1), y - 8.5, X(4), y - 6.5); c.stroke();
-  c.strokeStyle = "#D89236"; c.lineWidth = .6; c.beginPath(); c.moveTo(X(1.5), y - 6); c.quadraticCurveTo(X(2.8), y - 4, X(2.4), y - 2.2); c.stroke();
-  faceVec(c, X, y + .5, ex, { lashes: true, brow: "#C98432" });
+  c.strokeStyle = HS; c.lineWidth = .6; c.beginPath(); c.moveTo(X(1.5), y - 6); c.quadraticCurveTo(X(2.8), y - 4, X(2.4), y - 2.2); c.stroke();
+  faceVec(c, X, y + .5, ex, { lashes: true, brow: HS });
+  if (LERA_S.crown) {
+    c.fillStyle = "#FFD23F"; c.strokeStyle = OL; c.lineWidth = .7; c.beginPath();
+    c.moveTo(X(-4), y - 8.5); c.lineTo(X(-4.5), y - 13); c.lineTo(X(-2), y - 10.5); c.lineTo(X(.2), y - 14.5); c.lineTo(X(2.2), y - 10.5); c.lineTo(X(4.6), y - 13); c.lineTo(X(4.2), y - 8.5); c.closePath(); c.fill(); c.stroke();
+    ell(c, X(.2), y - 10.2, .8, .8, "#FF5E8A");
+  }
+}
+/* --- Гардероб: наряды, причёски и цвет волос. Открываются за рекорды в уровнях --- */
+const svStage = () => (prog.survBest && prog.survBest.stage) || 0;
+const LOOKS = {
+  outfit: [
+    { id: "classic", name: "Классика", c: { top: "#2E2938", topD: "#1F1B27", sleeve: "#2E2938", sleeveD: "#1F1B27", leg: "#8EBFE8", legD: "#6F9FCC", waist: "#8EBFE8", shoe: "#C9CDD6", shoeD: "#A3A3AD" } },
+    { id: "candy", name: "Зефирка", need: [() => prog.dance, "Пройди «Танцпол»"], c: { top: "#FF8FB1", topD: "#E06A92", sleeve: "#FF8FB1", sleeveD: "#E06A92", leg: "#FFFFFF", legD: "#E2DDF0", waist: "#FFFFFF", shoe: "#FF5E8A", shoeD: "#D8406A" } },
+    { id: "sport", name: "Спорт", need: [() => (prog.runnerBest || 0) >= 1000, "Пробеги 1000 м в забеге"], c: { top: "#E8322B", topD: "#B8241E", sleeve: "#FFFFFF", sleeveD: "#D8D8E0", leg: "#2A2A36", legD: "#1C1C26", waist: "#2A2A36", shoe: "#FFFFFF", shoeD: "#D0D0DA" } },
+    { id: "star", name: "Звёздная ночь", need: [() => prog.stars, "Поймай все звёзды"], c: { top: "#3A2C7A", topD: "#2A1E5E", sleeve: "#3A2C7A", sleeveD: "#2A1E5E", leg: "#B79CFF", legD: "#9278E0", waist: "#FFD23F", shoe: "#FFD23F", shoeD: "#D9A520" } },
+    { id: "winter", name: "Зимняя", need: [() => (prog.towerBest || 0) >= 150, "Поднимись на 150 м"], c: { top: "#BFE3FF", topD: "#8EC0EA", sleeve: "#FFFFFF", sleeveD: "#DDE6F5", leg: "#3E5A8A", legD: "#2C4470", waist: "#FFFFFF", shoe: "#8A5A3B", shoeD: "#6E4129" } },
+    { id: "hero", name: "Охотница", need: [() => svStage() >= 2, "Дойди до 3-й ночи «Атаки хмуриков»"], c: { top: "#1E5A52", topD: "#14403A", sleeve: "#2EC4A9", sleeveD: "#1E9A84", leg: "#2E2938", legD: "#1F1B27", waist: "#2EC4A9", shoe: "#3A2E28", shoeD: "#2A201C" } },
+    { id: "queen", name: "Королева", need: [() => (prog.cups || 0) >= 1, "Выиграй кубок во «Вкусной битве»"], crown: true, c: { top: "#FFD23F", topD: "#D9A520", sleeve: "#FFF1A8", sleeveD: "#E6CF70", leg: "#FFFFFF", legD: "#E2DDF0", waist: "#E8322B", shoe: "#E8322B", shoeD: "#B8241E" } }
+  ],
+  style: [
+    { id: "long", name: "Длинные" },
+    { id: "pony", name: "Хвостик", need: [() => prog.catch, "Пройди «Вкусный дождь»"] },
+    { id: "bob", name: "Каре", need: [() => (prog.fightWins || 0) >= 3, "Выиграй 3 боя"] },
+    { id: "braids", name: "Косички", need: [() => (prog.runnerBest || 0) >= 2000, "Пробеги 2000 м"] }
+  ],
+  hair: [
+    { id: "blonde", name: "Блонд", hc: ["#F2B65E", "#E3A24B", "#FFE7A8", "#C98432"] },
+    { id: "pink", name: "Розовые", need: [() => (prog.finishers || 0) >= 1, "Сделай добивание в битве"], hc: ["#FF9EC4", "#E87AA6", "#FFD6E8", "#C9568A"] },
+    { id: "choco", name: "Шоколадные", need: [() => (prog.towerBest || 0) >= 300, "Поднимись на 300 м"], hc: ["#8A5A3B", "#6E4129", "#B98560", "#4E2C1B"] },
+    { id: "lilac", name: "Лавандовые", need: [() => svStage() >= 5, "Пройди все 5 ночей «Атаки хмуриков»"], hc: ["#C9B6FF", "#A58FE8", "#ECE4FF", "#7A5AE0"] }
+  ]
+};
+const lookOpen = o => !o.need || !!o.need[0]();
+function applyLook() {
+  const L = store.get("lera-look", {}), pickL = (k, id) => LOOKS[k].find(o => o.id === id && lookOpen(o)) || LOOKS[k][0];
+  const o = pickL("outfit", L.outfit), st = pickL("style", L.style), hr = pickL("hair", L.hair);
+  Object.assign(LERA_S, o.c, { crown: !!o.crown, style: st.id, hc: hr.hc });
+  // иконки с Лерой перерисуются в новом образе
+  ["f_lera", "fw_lera", "fightCard", "survIc", "towerIc"].forEach(k => { delete urlCache[k]; });
 }
 function drawHuman(c, RX, RY, f, P, F, ex, S) {
   const hip = [RX + P.bx * f, RY - S.hip + P.by];
@@ -2349,7 +2472,7 @@ const KOLYA_S = { hip: 15, torso: 12, neck: 1, hr: 7, th: 7, sh: 8, ua: 6, fa: 6
 const LERA_S = { hip: 16, torso: 11, neck: 1, hr: 7, th: 7, sh: 9, ua: 6, fa: 6, legW: 5, tw: 9,
   skin: "#F6CBA8", skinD: "#DDA986", sleeve: "#2E2938", sleeveD: "#1F1B27", top: "#2E2938", topD: "#1F1B27", waist: "#8EBFE8",
   leg: "#8EBFE8", legD: "#6F9FCC", shoe: "#C9CDD6", shoeD: "#A3A3AD", shoeLen: 6, shoeH: 3,
-  head: leraHead, hairBack: leraHairBack, wings: true, bow: true };
+  head: leraHead, hairBack: leraHairBack, wings: true, bow: true, style: "long", hc: ["#F2B65E", "#E3A24B", "#FFE7A8", "#C98432"] };
 
 /* --- Еда: маскоты с ручками-шлангами, перчатками и ботинками (векторная отрисовка) --- */
 // скруглённый прямоугольник с мягкой обводкой
@@ -3286,7 +3409,11 @@ function resolveHit(A, D, m, src) {
     if (!A.ult || A.state !== "special") A.meter = Math.min(100, A.meter + dmg * 1.6);
     D.meter = Math.min(100, D.meter + dmg * 1.1);
     spark(sx, sy, D.def.splash.concat(["#FFFFFF"]), m.heavy ? 20 : 12);
-    G.stop = m.heavy ? 8 : 5; shake(m.heavy ? 4 : 2); SFX.hit(m.heavy);
+    G.stop = m.heavy ? 9 : 5; shake(m.heavy ? 4 : 2); SFX.hit(m.heavy);
+    // удар чувствуется: ударная волна, вспышка, наезд камеры и вибрация (там, где телефон её поддерживает)
+    (G.rings = G.rings || []).push({ x: sx, y: sy, r: 2, life: m.heavy ? 16 : 10, max: m.heavy ? 16 : 10, big: !!m.heavy });
+    if (m.heavy) { G.flashA = .28; G.zoom = { k: 1.07, x: sx, y: sy, hold: 6 }; }
+    try { if (navigator.vibrate) navigator.vibrate(m.heavy ? 28 : 12); } catch (e) {}
     if (A.combo >= 2) showCombo(A, A.combo);
   }
   if (D.hp <= 0) knockOut(D, A);
@@ -3298,12 +3425,15 @@ function knockOut(D, A) {
     G.phase = "finish"; G.pt = 0; G.winner = A; G.loser = D;
     D.state = "dizzy"; D.t = 0; D.frozen = 0; D.charm = 0; D.hidden = false; D.vx = 0; D.pullTo = null; D.knock = false;
     G.slow = 40; shake(5); SFX.ko(); announce("ДОБЕЙ!");
+    G.zoom = { k: 1.12, x: (A.x + D.x) / 2, y: D.y - 22, hold: 9999 }; G.koFx = 40;
     return;
   }
   G.phase = "ko"; G.pt = 0; G.winner = A;
   D.state = "ko"; D.t = 0; D.frozen = 0; D.charm = 0; D.hidden = false;
   D.vx = (D.x >= A.x ? 1 : -1) * 2.2; D.vy = -3.2; D.air = true; D.landed = false; D.y -= 1;
   G.slow = 50; shake(6); SFX.ko(); announce("НОКАУТ!");
+  G.zoom = { k: 1.16, x: D.x, y: D.y - 20, hold: 45 }; G.koFx = 50; G.flashA = .45;
+  try { if (navigator.vibrate) navigator.vibrate([40, 30, 80]); } catch (e) {}
 }
 
 function physics(F) {
@@ -3757,7 +3887,13 @@ const Fight = {
     if (G.shake > 0) G.shake = Math.max(0, G.shake - .25);
     if (G.ultFlash > 0) G.ultFlash--;
     if (G.hintT > 0 && --G.hintT === 0) $("#fhint").textContent = "";
+    if (G.zoom) { if (G.zoom.hold > 0 && G.phase !== "fight") G.zoom.hold--; else if (G.phase === "fight" && G.zoom.hold > 0) G.zoom.hold--; else G.zoom.k += (1 - G.zoom.k) * .08; if (G.zoom.k < 1.002) G.zoom = null; }
+    if (G.flashA > 0) G.flashA = Math.max(0, G.flashA - .03);
+    if (G.koFx > 0) G.koFx--;
+    if (G.rings) { G.rings.forEach(r => { r.life--; r.r += r.big ? 3.2 : 2.2; }); G.rings = G.rings.filter(r => r.life > 0); }
     if (G.stop > 0) { G.stop--; return; }
+    // добивание идёт в замедленной съёмке
+    if (G.phase === "fatal" && G.frame % 3 === 0) return;
     if (G.slow > 0) { G.slow--; if (G.slow % 3) return; }
     if (G.phase === "vs" || G.phase === "end") return;
     if (G.phase === "intro") {
@@ -3978,6 +4114,7 @@ const Fight = {
     c.imageSmoothingEnabled = true;
     c.save();
     if (G.shake > 0 && !reduced) c.translate(Math.round(rand(-G.shake, G.shake)), Math.round(rand(-G.shake, G.shake) * .6));
+    const Z = G.zoom; if (Z && !reduced) { const zx = clamp(Z.x, W * .25, W * .75), zy = clamp(Z.y, H * .3, H * .8); c.translate(zx, zy); c.scale(Z.k, Z.k); c.translate(-zx, -zy); }
     c.drawImage(G.bg, 0, 0);
     const base = H - 180;
     // пар над кастрюлей и мерцание вывески
@@ -4024,7 +4161,16 @@ const Fight = {
       px(c, f.x - r, f.y, r * 2 + 1, 1, "#FFFFFF"); px(c, f.x, f.y - r, 1, r * 2 + 1, "#FFFFFF");
       if (f.life > 3) pell(c, f.x, f.y, 2, 2, "#FFFFFF");
     }
+    for (const r of G.rings || []) { c.globalAlpha = r.life / r.max; c.strokeStyle = "#FFFFFF"; c.lineWidth = r.big ? 2.2 : 1.4; c.beginPath(); c.ellipse(r.x, r.y, r.r, r.r * .8, 0, 0, 6.283); c.stroke(); }
+    c.globalAlpha = 1;
     c.restore();
+    // линии скорости при нокауте и добивании
+    if (G.koFx > 0 && !reduced) {
+      const cx0 = W / 2, cy0 = H * .55; c.save(); c.globalAlpha = Math.min(.55, G.koFx / 40);
+      for (let i = 0; i < 26; i++) { const a = i / 26 * 6.283 + G.frame * .013, r0 = Math.max(W, H) * (.42 + ((i * 37) % 10) / 40), r1 = Math.max(W, H) * .9; c.strokeStyle = i % 2 ? "#FFFFFF" : "#FFE2A0"; c.lineWidth = 1 + (i % 3) * .6; c.beginPath(); c.moveTo(cx0 + Math.cos(a) * r0, cy0 + Math.sin(a) * r0); c.lineTo(cx0 + Math.cos(a) * r1, cy0 + Math.sin(a) * r1); c.stroke(); }
+      c.restore();
+    }
+    if (G.flashA > 0) { c.fillStyle = `rgba(255,248,235,${G.flashA})`; c.fillRect(0, 0, W, H); }
     vignette(c, W, H);
     this.drawHD();
   },
@@ -6335,6 +6481,192 @@ ICON_FN.survIc = () => {
   return c;
 };
 
+/* ====== Гардероб Леры ====== */
+const Wardrobe = {
+  init() {
+    this.cv = $("#wcv"); this.ctx = this.cv.getContext("2d");
+    $("#wLists").addEventListener("click", e => {
+      const b = e.target.closest("[data-k]"); if (!b) return;
+      const o = LOOKS[b.dataset.k].find(x => x.id === b.dataset.id);
+      if (!lookOpen(o)) { b.classList.remove("nope"); void b.offsetWidth; b.classList.add("nope"); SFX.bump(); return; }
+      const L = store.get("lera-look", {}); L[b.dataset.k] = o.id; store.set("lera-look", L);
+      applyLook(); this.render(); SFX.pick(); this.F.state = "win"; this.F.t = 0;
+    });
+  },
+  enter() {
+    Player.suggest("lera");
+    this.F = { def: FBY.lera, f: 1, state: "idle", t: 0, vy: 0, jumps: 0, flash: 0, frozen: 0, slow: 0, charm: 0 };
+    this.render();
+    cancelAnimationFrame(this.raf);
+    const loop = () => { if (current !== "wardrobe") return; this.draw(); this.raf = requestAnimationFrame(loop); };
+    this.raf = requestAnimationFrame(loop);
+  },
+  leave() { cancelAnimationFrame(this.raf); },
+  render() {
+    const L = store.get("lera-look", {}), titles = { outfit: "Наряды", style: "Причёски", hair: "Цвет волос" };
+    let open = 0, all = 0;
+    $("#wLists").innerHTML = Object.keys(LOOKS).map(k => `<h3 class="pixel-h2">${titles[k]}</h3><div class="w-grid">` + LOOKS[k].map(o => {
+      const ok = lookOpen(o), on = (L[k] || LOOKS[k][0].id) === o.id && ok; all++; if (ok) open++;
+      const sw = o.c ? `<i class="w-sw" style="background:linear-gradient(135deg,${o.c.top} 50%,${o.c.leg} 50%)"></i>` : o.hc ? `<i class="w-sw" style="background:linear-gradient(135deg,${o.hc[0]},${o.hc[1]})"></i>` : `<i class="w-sw st-${o.id}"></i>`;
+      return `<button class="w-opt${on ? " on" : ""}${ok ? "" : " locked"}" type="button" data-k="${k}" data-id="${o.id}">${sw}<b>${o.name}</b>${ok ? "" : `<small>🔒 ${o.need[1]}</small>`}</button>`;
+    }).join("") + `</div>`).join("");
+    $("#wCount").textContent = `${open} из ${all}`;
+  },
+  draw() {
+    const c = this.ctx, cv = this.cv, r = cv.getBoundingClientRect(), d = Math.min(window.devicePixelRatio || 1, 2);
+    if (cv.width !== Math.round(r.width * d)) { cv.width = Math.round(r.width * d); cv.height = Math.round(r.height * d); }
+    const W = cv.width, H = cv.height, F = this.F;
+    F.t++; if (F.state === "win" && F.t > 90) { F.state = "idle"; F.t = 0; }
+    if (F.t % 240 === 0 && F.state === "idle") F.f = -F.f;
+    c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, W, H);
+    const g = c.createRadialGradient(W / 2, H * .55, 10, W / 2, H * .55, H * .6); g.addColorStop(0, "rgba(255,170,220,.35)"); g.addColorStop(1, "rgba(255,170,220,0)");
+    c.fillStyle = g; c.fillRect(0, 0, W, H);
+    c.fillStyle = "rgba(10,5,30,.35)"; c.beginPath(); c.ellipse(W / 2, H * .9, W * .18, H * .04, 0, 0, 6.283); c.fill();
+    const b = renderFighter(F), k = H / 60;
+    c.imageSmoothingEnabled = true;
+    c.drawImage(b, 18, 30, 60, 60, W / 2 - 30 * k, H * .9 - 58 * k, 60 * k, 60 * k);
+  }
+};
+
+/* ====== Секретный уровень: крыша под звёздами ====== */
+const secretTasks = () => [
+  ["Пройди «Вкусный дождь»", !!prog.catch], ["Зажги «Танцпол»", !!prog.dance], ["Поймай все звёзды", !!prog.stars],
+  ["Пробеги 500 м в забеге", (prog.runnerBest || 0) >= 500], ["Победи во «Вкусной битве»", (prog.fightWins || 0) >= 1],
+  ["Поднимись на 100 м", (prog.towerBest || 0) >= 100], ["Переживи первую ночь «Атаки хмуриков»", svStage() >= 1]
+];
+const secretOpen = () => secretTasks().every(t => t[1]);
+const Roof = {
+  init() {
+    this.cv = $("#roofcv"); this.ctx = this.cv.getContext("2d");
+    $("#roofStage").addEventListener("pointerdown", e => { if (e.target.closest("button, .panel")) return; A.init(); this.tap(); });
+    $("#roofStart").addEventListener("click", () => { A.init(); $("#roofIntro").hidden = true; this.on = true; });
+    addEventListener("resize", () => { if (current === "roof") this.resize(); });
+  },
+  enter() {
+    Player.suggest("stars", true);
+    this.resize(); this.reset();
+    $("#roofIntro").hidden = false; $("#roofEnd").hidden = true;
+    cancelAnimationFrame(this.raf); this.last = performance.now(); this.acc = 0;
+    this.raf = requestAnimationFrame(t => this.loop(t));
+  },
+  leave() { cancelAnimationFrame(this.raf); this.on = false; },
+  resize() {
+    const r = fitPixel($("#roofBox"), $("#roofWrap"), this.cv, { baseH: 300, maxH: 460, minW: 260, maxW: 440 });
+    this.W = r.W; this.H = r.H; this.city = null;
+  },
+  reset() {
+    const mk = def => ({ def, f: 1, state: "idle", t: Math.floor(Math.random() * 50), vy: 0, jumps: 0, flash: 0, frozen: 0, slow: 0, charm: 0 });
+    this.K = mk(FBY.kolya); this.L = mk(FBY.lera); this.L.f = -1;
+    this.t = 0; this.wishes = 0; this.shoots = []; this.bubbles = []; this.parts = []; this.on = false; this.done = false; this.nextS = 60;
+    this.stars = Array.from({ length: 90 }, () => ({ x: Math.random(), y: Math.random() * .6, p: Math.random() * 6, s: Math.random() < .15 ? 1.3 : .7 }));
+  },
+  roofY() { return this.H - 26; },
+  tap() {
+    if (!this.on || this.done) return;
+    const s = this.shoots.find(s => !s.caught && s.x > -20 && s.x < this.W + 40);
+    if (!s) return;
+    s.caught = true; this.wishes++;
+    for (let i = 0; i < 24; i++) { const a = Math.random() * 6.283, v = rand(.4, 2); this.parts.push({ x: s.x, y: s.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: rand(30, 60), age: 0, col: pick(["#FFF6B0", "#FFD23F", "#FFFFFF", "#FF8FB1"]) }); }
+    SFX.bonus();
+    const text = CONFIG.wishes[(this.wishes - 1) % CONFIG.wishes.length];
+    this.bubbles.push({ text, age: 0, life: 260 });
+    $("#roofCount").textContent = this.wishes;
+    if (this.wishes >= CONFIG.wishes.length) setTimeout(() => this.finale(), 2600);
+  },
+  finale() {
+    if (current !== "roof" || this.done) return;
+    this.done = true; this.K.state = "win"; this.L.state = "win"; this.K.t = this.L.t = 0;
+    FX.fireworks(reduced ? 2 : 8); FX.confetti(90); playSweet();
+    Toast.give("roof", "Все желания загаданы", "heart");
+    $("#roofNote").textContent = `${CONFIG.roofNote} — ${CONFIG.signature}`;
+    setTimeout(() => { if (current === "roof") $("#roofEnd").hidden = false; }, 3600);
+  },
+  loop(ts) {
+    const dt = Math.min(100, ts - this.last); this.last = ts; this.acc += dt;
+    while (this.acc >= 1000 / 60) { this.acc -= 1000 / 60; this.tick(); }
+    this.draw();
+    this.raf = requestAnimationFrame(t => this.loop(t));
+  },
+  tick() {
+    this.t++; this.K.t++; this.L.t++;
+    const W = this.W;
+    if (this.on && !this.done && --this.nextS <= 0) {
+      this.nextS = 150 + Math.random() * 120;
+      this.shoots.push({ x: W * (.45 + Math.random() * .5), y: 8 + Math.random() * this.H * .25, vx: -(1.6 + Math.random()), vy: .55 + Math.random() * .4, age: 0 });
+    }
+    for (const s of this.shoots) { s.age++; if (!s.caught) { s.x += s.vx; s.y += s.vy; } }
+    this.shoots = this.shoots.filter(s => s.x > -40 && s.age < 300 && !(s.caught && s.age > 400));
+    this.shoots = this.shoots.filter(s => !s.caught);
+    for (const b of this.bubbles) b.age++;
+    this.bubbles = this.bubbles.filter(b => b.age < b.life);
+    this.parts = this.parts.filter(p => { p.age++; p.x += p.vx; p.y += p.vy; p.vx *= .96; p.vy = p.vy * .96 + .01; return p.age < p.life; });
+    // в финале Лера и Коля подходят друг к другу
+    const gap = this.done ? 13 : 30;
+    this.kx = this.kx == null ? W / 2 - 15 : this.kx + ((W / 2 - gap / 2) - this.kx) * .03;
+    this.lx = this.lx == null ? W / 2 + 15 : this.lx + ((W / 2 + gap / 2) - this.lx) * .03;
+    if (this.done && this.t % 14 === 0) this.parts.push({ x: W / 2 + rand(-8, 8), y: this.roofY() - 46, vx: rand(-.2, .2), vy: -.5, life: 90, age: 0, col: "#FF5E8A", heart: true });
+  },
+  draw() {
+    const c = this.ctx, W = this.W, H = this.H, t = this.t, RY = this.roofY();
+    if (!W) return;
+    // небо
+    const g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#090A24"); g.addColorStop(.55, "#2A1E5A"); g.addColorStop(.85, "#7A3A6E"); g.addColorStop(1, "#C25A7A");
+    c.fillStyle = g; c.fillRect(0, 0, W, H);
+    c.globalCompositeOperation = "lighter";
+    for (let x = 0; x < W; x += 3) { const y = H * .18 + Math.sin(x * .02 + t * .01) * 14 + Math.sin(x * .007 - t * .006) * 10; const a = .045 + .035 * Math.sin(x * .03 + t * .02); const gg = c.createLinearGradient(0, y - 20, 0, y + 45); gg.addColorStop(0, "rgba(80,240,200,0)"); gg.addColorStop(.35, `rgba(80,240,200,${a})`); gg.addColorStop(1, "rgba(80,240,200,0)"); c.fillStyle = gg; c.fillRect(x, y - 20, 3, 65); }
+    c.globalCompositeOperation = "source-over";
+    for (const s of this.stars) { const a = .35 + .65 * Math.abs(Math.sin(t * .02 + s.p)); c.globalAlpha = a; c.fillStyle = "#FFF4E6"; c.beginPath(); c.arc(s.x * W, s.y * H, s.s * .7, 0, 6.283); c.fill(); }
+    c.globalAlpha = 1;
+    // луна
+    const mx = W * .8, my = H * .16, mg = c.createRadialGradient(mx - 3, my - 3, 1, mx, my, 13); mg.addColorStop(0, "#FFFDF0"); mg.addColorStop(1, "#E8D49A");
+    c.fillStyle = mg; c.beginPath(); c.arc(mx, my, 13, 0, 6.283); c.fill();
+    // падающие звёзды
+    for (const s of this.shoots) {
+      const gg = c.createLinearGradient(s.x, s.y, s.x - s.vx * 16, s.y - s.vy * 16); gg.addColorStop(0, "rgba(255,255,255,1)"); gg.addColorStop(1, "rgba(255,230,180,0)");
+      c.strokeStyle = gg; c.lineWidth = 1.6; c.lineCap = "round"; c.beginPath(); c.moveTo(s.x, s.y); c.lineTo(s.x - s.vx * 16, s.y - s.vy * 16); c.stroke();
+      c.fillStyle = "#FFFFFF"; c.beginPath(); c.arc(s.x, s.y, 1.6, 0, 6.283); c.fill();
+    }
+    // город внизу
+    if (!this.city) this.city = [cityTile(Math.ceil(W), 110, "#1E1A3F", "#C9A85A", 31), cityTile(Math.ceil(W), 74, "#15122E", "#FFD27A", 37)];
+    c.globalAlpha = .8; c.drawImage(this.city[0], 0, RY - 104); c.globalAlpha = 1;
+    c.drawImage(this.city[1], 0, RY - 64);
+    const hz = c.createLinearGradient(0, RY - 70, 0, RY); hz.addColorStop(0, "rgba(255,120,170,0)"); hz.addColorStop(1, "rgba(255,120,170,.25)"); c.fillStyle = hz; c.fillRect(0, RY - 70, W, 70);
+    // крыша: плед, банки колы и гирлянда
+    const rg = c.createLinearGradient(0, RY, 0, H); rg.addColorStop(0, "#3A3058"); rg.addColorStop(1, "#15122A");
+    c.fillStyle = rg; c.fillRect(0, RY, W, H - RY);
+    c.fillStyle = "rgba(255,255,255,.18)"; c.fillRect(0, RY, W, 1);
+    c.fillStyle = "#C93F5E"; c.beginPath(); if (c.roundRect) c.roundRect(W / 2 - 34, RY + 2, 68, 10, 3); else c.rect(W / 2 - 34, RY + 2, 68, 10); c.fill();
+    c.strokeStyle = "rgba(255,255,255,.35)"; c.lineWidth = .8; for (let i = -30; i < 34; i += 8) { c.beginPath(); c.moveTo(W / 2 + i, RY + 3); c.lineTo(W / 2 + i, RY + 11); c.stroke(); }
+    [[W / 2 - 40, RY - 1], [W / 2 + 37, RY - 1]].forEach(([x, y]) => { c.fillStyle = "#E8322B"; c.beginPath(); if (c.roundRect) c.roundRect(x, y - 8, 5, 9, 1.4); else c.rect(x, y - 8, 5, 9); c.fill(); c.fillStyle = "#D9DDE8"; c.fillRect(x, y - 8, 5, 1.4); c.fillStyle = "#FFFFFF"; c.fillRect(x + .6, y - 4, 3.8, .8); });
+    const bulbs = [];
+    c.strokeStyle = "rgba(20,10,30,.8)"; c.lineWidth = .7; c.beginPath();
+    for (let x = -4; x <= W + 4; x += 2) { const y = RY - 78 + Math.pow((x - W / 2) / (W / 2), 2) * 26 + 12; x < -2 ? c.moveTo(x, y) : c.lineTo(x, y); if (Math.round(x) % 18 === 0) bulbs.push([x, y + 2]); }
+    c.stroke();
+    bulbs.forEach(([x, y], i) => { const col = ["#FFD27A", "#FF8FB1", "#8FE6FF", "#C9B6FF"][i % 4]; const on = .65 + .35 * Math.sin(t * .05 + i); c.globalAlpha = on; c.fillStyle = col; c.beginPath(); c.arc(x, y, 1.6, 0, 6.283); c.fill(); c.globalCompositeOperation = "lighter"; c.globalAlpha = on * .6; c.drawImage(glowSprite(rgbOf(col)), x - 9, y - 9, 18, 18); c.globalCompositeOperation = "source-over"; });
+    c.globalAlpha = 1;
+    // Коля и Лера
+    const draw = (F, x) => { c.fillStyle = "rgba(0,0,10,.35)"; c.beginPath(); c.ellipse(x, RY + 1, 9, 2, 0, 0, 6.283); c.fill(); c.drawImage(renderFighter(F), Math.round(x) - 48, RY - 88); };
+    draw(this.K, this.kx || W / 2 - 15); draw(this.L, this.lx || W / 2 + 15);
+    for (const p of this.parts) {
+      const a = Math.max(0, 1 - p.age / p.life);
+      if (p.heart) { c.globalAlpha = a; c.fillStyle = p.col; c.beginPath(); c.moveTo(p.x, p.y + 2.4); c.bezierCurveTo(p.x - 4.5, p.y - .8, p.x - 2, p.y - 4, p.x, p.y - 1.5); c.bezierCurveTo(p.x + 2, p.y - 4, p.x + 4.5, p.y - .8, p.x, p.y + 2.4); c.fill(); c.globalAlpha = 1; }
+      else softDot(c, p.x, p.y, 1.6, p.col, a);
+    }
+    vignette(c, W, H);
+    // HD-слой: свет и надписи желаний
+    const h = this.post || (this.post = Post.attach($("#roofWrap"), this.cv, "night"));
+    Post.begin(h, W, H);
+    Post.glow(h, mx, my, 60, "255,236,190", .35);
+    for (const s of this.shoots) Post.glow(h, s.x, s.y, 14, "255,240,210", .8);
+    Post.glow(h, W / 2, RY - 20, 70, "255,190,150", .14);
+    this.bubbles.forEach((b, i) => {
+      const a = Math.min(1, b.age / 20, (b.life - b.age) / 30), y = H * .34 + i * 18 - Math.min(10, b.age * .1);
+      Post.text(h, b.text, W / 2, y, 7.5, { a, weight: 800, cols: ["#FFFFFF", "#FFE0EC"], glow: "rgba(255,140,190,.9)" });
+    });
+    Post.end(h);
+  }
+};
+
 /* ====== Вступление ====== */
 const Intro = {
   taps: 0, opened: false,
@@ -6388,17 +6720,31 @@ const LEVELS = [
   { id: "runner", title: "Крылатый забег", text: "Пять локаций и хитрые связки препятствий. Крылья помогут.", ic: "wing", isNew: true, stat: () => prog.runnerBest ? `РЕКОРД: ${prog.runnerBest} М` : "" },
   { id: "dance", title: "Танцпол", text: "Восемь движений под музыку.", ic: "ball", stat: () => prog.dance ? "ПРОЙДЕН ✓" : "" },
   { id: "stars", title: "Звёзды", text: "За что я тебя люблю.", ic: "star", stat: () => prog.stars ? "ВСЕ ЗВЁЗДЫ ✓" : "" },
+  { id: "wardrobe", title: "Гардероб Леры", text: "Наряды, причёски и цвет волос. Новые открываются за рекорды в уровнях.", ic: "fw_lera", wide: true, cls: "wardrobe", isNew: true, stat: () => { const all = Object.values(LOOKS).flat(); return `ОТКРЫТО: ${all.filter(lookOpen).length} ИЗ ${all.length}`; } },
+  { id: "roof", title: "Крыша под звёздами", text: "Секретный уровень. Открывается, когда пройдено всё остальное.", ic: "star", wide: true, cls: "secret", isNew: true, secret: true, stat: () => { const t = secretTasks(); return secretOpen() ? "ОТКРЫТ ✓" : `🔒 ВЫПОЛНЕНО ${t.filter(x => x[1]).length} ИЗ ${t.length}`; } },
   { id: "final", title: "Письмо и купоны", text: "Письмо, твой рисунок и подарочные купоны.", ic: "heart", wide: true, cls: "letter-card", stat: () => "" }
 ];
 const Menu = {
-  init() { $("#levels").addEventListener("click", e => { const b = e.target.closest(".lvl"); if (b) { A.init(); go(b.dataset.lv); } }); },
+  init() {
+    $("#levels").addEventListener("click", e => {
+      const b = e.target.closest(".lvl"); if (!b) return;
+      A.init();
+      if (b.dataset.lv === "roof" && !secretOpen()) { this.secret(); return; }
+      go(b.dataset.lv);
+    });
+    $("#secretOk").addEventListener("click", () => { $("#secretInfo").hidden = true; });
+  },
+  secret() {
+    $("#secretList").innerHTML = secretTasks().map(([t, ok]) => `<li class="${ok ? "ok" : ""}">${ok ? "✓" : "○"} ${t}</li>`).join("");
+    $("#secretInfo").hidden = false; SFX.pick();
+  },
   enter() {
     Player.suggest("night");
     $("#levels").innerHTML = LEVELS.map(l => {
       const st = l.stat();
       return `<button class="lvl${l.wide ? " wide" : ""}${l.cls ? " " + l.cls : ""}" type="button" data-lv="${l.id}">` +
         (l.isNew ? `<span class="badge">НОВОЕ</span>` : "") +
-        `<img class="lv-ic px" src="${icon(l.ic)}" alt=""><span class="lv-txt"><h3>${l.title}</h3><p>${l.text}</p>${st ? `<span class="lv-stat">${st}</span>` : ""}</span></button>`;
+        `<img class="lv-ic px${l.secret && !secretOpen() ? " locked" : ""}" src="${icon(l.ic)}" alt=""><span class="lv-txt"><h3>${l.title}</h3><p>${l.text}</p>${st ? `<span class="lv-stat">${st}</span>` : ""}</span></button>`;
     }).join("");
   }
 };
@@ -6912,8 +7258,8 @@ const Final = {
 function start(data) {
   $$("img[data-icon]").forEach(img => { img.src = icon(img.dataset.icon); });
   Stars.init(); FX.init(); Player.init();
-  Intro.init(); Menu.init(); Game.init(); Dance.init(); Sky.init(); Runner.init(); Tower.init(); Fight.init(); Surv.init();
-  Object.assign(Scenes, { menu: Menu, catch: Game, dance: Dance, stars: Sky, runner: Runner, tower: Tower, fight: Fight, surv: Surv, final: Final });
+  Intro.init(); Menu.init(); Game.init(); Dance.init(); Sky.init(); Runner.init(); Tower.init(); Fight.init(); Surv.init(); applyLook(); Wardrobe.init(); Roof.init();
+  Object.assign(Scenes, { menu: Menu, catch: Game, dance: Dance, stars: Sky, runner: Runner, tower: Tower, fight: Fight, surv: Surv, wardrobe: Wardrobe, roof: Roof, final: Final });
   $("#menuBtn").addEventListener("click", () => go("menu"));
 
   const muteBtn = $("#mute");
