@@ -675,11 +675,39 @@ body,#app{background:#0E1430}
 /* уведомления о достижениях */
 .toast{background:rgba(18,22,52,.94);box-shadow:inset 0 0 0 1px rgba(244,214,154,.35),0 14px 34px rgba(0,0,0,.4);backdrop-filter:none;-webkit-backdrop-filter:none}
 .toast-k{font:700 11px/1.4 var(--font-body);color:var(--gold);letter-spacing:.02em}
+.toast-k{text-transform:lowercase}.toast-k::first-letter{text-transform:uppercase}
 /* танцпол: подпись-реакция и кнопки движений */
 .hype{font:700 clamp(22px,7vw,30px)/1.2 var(--font-display);color:var(--ink);text-shadow:0 0 18px rgba(240,166,184,.5)}
 .btn.move{background-image:none;border-radius:12px}
 /* если есть «Продолжить», «Сначала»/«Новая игра» становится второстепенной */
 .btn.gold:not([hidden]) ~ .btn:not(.gold){color:var(--ink);background-color:transparent;box-shadow:inset 0 0 0 1px rgba(243,236,226,.28)}
+/* ====== Студийная подача: заставка, титульный экран, переходы ====== */
+.studio{position:absolute;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:#07081A;pointer-events:none;animation:studio 2.6s ease forwards}
+.studio-mark{font-size:22px;color:var(--pink);text-shadow:0 0 18px rgba(240,166,184,.7);animation:studioIn 2.6s ease both}
+.studio-name{font:600 15px/1 var(--font-body);letter-spacing:.32em;color:var(--muted);animation:studioIn 2.6s ease both}
+@keyframes studio{0%,78%{opacity:1}100%{opacity:0;visibility:hidden}}
+@keyframes studioIn{0%{opacity:0;transform:translateY(6px)}25%,62%{opacity:1;transform:none}80%,100%{opacity:0}}
+.title-screen{gap:14px}
+.title-logo{margin:0;font:700 clamp(54px,16vw,92px)/.95 var(--font-display);letter-spacing:-.01em;color:var(--ink);text-shadow:0 0 40px rgba(244,214,154,.35);
+  background:linear-gradient(100deg,var(--ink) 40%,#FFF6DA 50%,var(--ink) 60%) 0 0/250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:titleShine 4.5s ease-in-out 1.2s infinite}
+.title-logo.small{font-size:clamp(40px,11vw,60px)}
+@keyframes titleShine{0%{background-position:120% 0}55%,100%{background-position:-30% 0}}
+.title-sub{margin:0 0 18px;font:500 italic 20px/1.3 var(--font-display);color:var(--muted)}
+.title-screen .loader{width:min(220px,70%);height:2px;padding:0;background:rgba(243,236,226,.12);box-shadow:none}
+.title-screen .loader-fill{background:var(--gold);box-shadow:0 0 10px rgba(244,214,154,.8)}
+.title-screen .tip{font:500 13px/1.4 var(--font-body);color:var(--muted)}
+.hero-art{width:min(320px,86%);height:auto;filter:drop-shadow(0 18px 30px rgba(0,0,0,.45))}
+.gift-wrap .eyebrow{font:600 italic 22px/1.2 var(--font-display);letter-spacing:0;color:var(--ink)}
+.hint{font:600 14px/1.4 var(--font-body);color:var(--gold)}
+/* смена экранов: короткая вуаль, как монтажная склейка в кино */
+.veil{position:absolute;inset:0;z-index:35;background:#07081A;opacity:0;pointer-events:none}
+.veil.cut{opacity:1;transition:none}
+.veil.fade{opacity:0;transition:opacity .42s cubic-bezier(.4,0,.2,1)}
+.scene{animation:none}
+/* меню: карточки появляются одной волной при входе */
+#levels .lvl{animation:cardIn .5s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0) * 45ms)}
+@keyframes cardIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.studio,.studio-mark,.studio-name,.title-logo,#levels .lvl{animation:none}.studio{display:none}}
 /* удобство касаний: цели не меньше 44 px */
 .diff button{min-height:44px}
 .lvl.wide .badge ~ .lv-txt h3{padding-right:72px}
@@ -688,6 +716,7 @@ body,#app{background:#0E1430}
 </style>
 
 <div id="app">
+  <div class="veil" id="veil" aria-hidden="true"></div>
   <div class="grain-all" aria-hidden="true"></div>
   <canvas id="stars" aria-hidden="true"></canvas>
 
@@ -736,9 +765,10 @@ body,#app{background:#0E1430}
     <!-- Вступление -->
     <section class="scene" id="s-intro">
       <div class="col center">
-        <div class="loading" id="loading">
-          <p class="eyebrow">Загружаем мир</p>
-          <h1 class="pixel-title">МИР<br><span class="name">ЛЕРЫ</span></h1>
+        <div class="studio" id="studio" aria-hidden="true"><span class="studio-mark">♥</span><span class="studio-name">Коля представляет</span></div>
+        <div class="loading title-screen" id="loading">
+          <h1 class="title-logo">Мир Леры</h1>
+          <p class="title-sub">подарок, сделанный с любовью</p>
           <div class="loader" role="progressbar" aria-label="Загрузка"><div class="loader-fill" id="loaderFill"></div></div>
           <p class="tip" id="loaderTip">Охлаждаем колу…</p>
         </div>
@@ -752,14 +782,8 @@ body,#app{background:#0E1430}
           <p class="hint" id="giftHint">Нажми на подарок</p>
         </div>
         <div class="opened" id="opened" hidden>
-          <div class="hero" role="img" aria-label="Пиксельные Коля и Лера: Лера-купидон пускает в Колю стрелу с сердечком">
-            <img class="px hero-heart h2" data-icon="heart" alt="">
-            <img class="px hero-heart h1" data-icon="heart" alt="">
-            <img class="px hero-kolya" data-icon="kolya" alt="">
-            <img class="px hero-arrow" data-icon="arrow" alt="">
-            <div class="hero-cupid"><img class="px w" data-icon="wings" alt=""><img class="px l" data-icon="lera" alt=""></div>
-          </div>
-          <h1 class="pixel-title">ПРИВЕТ,<br><span class="name">ЛЕРА!</span></h1>
+          <img class="hero-art" data-icon="heroArt" alt="Коля и Лера-купидон с крыльями, между ними сердце">
+          <h1 class="title-logo small">Привет, Лера!</h1>
           <p class="lead">Без повода. Просто захотелось, чтобы ты улыбнулась. Этот мир сделан специально для тебя: тут мини-игры, битва, музыка и сюрприз.</p>
           <button class="btn" id="startBtn" type="button">Войти в мир</button>
         </div>
@@ -1571,6 +1595,7 @@ const A = {
 };
 const mf = m => 440 * Math.pow(2, (m - 69) / 12);
 const SFX = {
+  ui() { const t = A.now(); A.tone(mf(88), t, .05, { type: "sine", vol: .05 }); A.noise(t, .02, { vol: .025, freq: 5000, q: .7 }); },
   pick() { const t = A.now(); A.tone(mf(84), t, .07); A.tone(mf(91), t + .06, .12); },
   bonus() { const t = A.now(); [84, 88, 91, 96, 100].forEach((m, i) => A.tone(mf(m), t + i * .05, .12, { vol: .12 })); },
   heart() { const t = A.now(); A.tone(mf(79), t, .1, { type: "triangle", vol: .28 }); A.tone(mf(86), t + .08, .2, { type: "triangle", vol: .28 }); },
@@ -1627,6 +1652,9 @@ const scenes = {};
 const Scenes = {};
 let current = null;
 function go(name) {
+  // склейка: экран мгновенно скрывается под тёмной вуалью, и новая сцена проявляется из темноты
+  const veil = document.getElementById("veil");
+  if (veil && current && !reduced) { veil.classList.remove("fade"); veil.classList.add("cut"); void veil.offsetWidth; veil.classList.remove("cut"); veil.classList.add("fade"); }
   if (current && Scenes[current] && Scenes[current].leave) Scenes[current].leave();
   Object.entries(scenes).forEach(([k, el]) => { el.hidden = k !== name; });
   current = name;
@@ -1636,6 +1664,11 @@ function go(name) {
   if (Scenes[name] && Scenes[name].enter) Scenes[name].enter();
 }
 document.addEventListener("click", e => { const b = e.target.closest("[data-go]"); if (b) go(b.dataset.go); });
+// мягкий отклик на касание кнопок интерфейса (у игровых кнопок свои звуки)
+document.addEventListener("pointerdown", e => {
+  const b = e.target.closest(".btn, .lvl, .w-opt, .sv-card, .trk, .tb-btn, .p-btn, .fpick, .diff button, .fmode button, .slot, .coupon .btn");
+  if (b && !b.classList.contains("move") && A.ctx) SFX.ui();
+});
 
 /* Подгоняет пиксельный холст под доступное место: внутренний размер меняется под пропорции экрана */
 function fitPixel(box, wrap, cv, o) {
@@ -3398,7 +3431,7 @@ function physics(F) {
   if (F.air) {
     F.vy += GRAV; F.y += F.vy;
     if (F.y >= G.GROUND) {
-      F.y = G.GROUND; F.vy = 0; F.air = false; F.jumps = 0;
+      F.y = G.GROUND; F.vy = 0; F.air = false; F.jumps = 0; F.landT = 7;
       if (F.state === "attack" && F.atk && F.atk.air) { F.state = "idle"; F.t = 0; F.atk = null; dust(F); }
       else if (F.state === "jump") { F.state = "idle"; F.t = 0; dust(F); }
       else if (F.state === "hit" && F.knock) { F.knock = false; F.state = "down"; F.down = 44; F.t = 0; SFX.bump(); shake(2); dust(F); }
@@ -4191,7 +4224,12 @@ const Fight = {
     } else if (F.scale && F.scale !== 1) {
       const s = F.scale;
       c.drawImage(b, Math.round(F.x - 48 * s), Math.round(F.y - 88 * s), Math.round(96 * s), Math.round(96 * s));
-    } else c.drawImage(b, Math.round(F.x) - 48, Math.round(F.y) - 88);
+    } else {
+      // сжатие и растяжение в прыжке и при приземлении
+      const st = F.air ? Math.min(1, Math.abs(F.vy) / 4) * .06 : 0, sq = F.landT > 0 ? F.landT / 7 * .1 : 0;
+      if (F.landT > 0) F.landT--;
+      c.save(); c.translate(F.x, F.y); c.scale(1 - st + sq, 1 + st - sq); c.drawImage(b, -48, -88); c.restore();
+    }
     if (F.state === "dizzy" && !F.tint && !F.tintTop) {
       for (let i = 0; i < 3; i++) {
         const a = G.frame * .12 + i * 2.1, sx = Math.round(F.x + Math.cos(a) * 9), sy = Math.round(F.y - F.def.h - 8 + Math.sin(a) * 2);
@@ -4873,7 +4911,7 @@ const Runner = {
     const L = this.L;
     this.speed = Math.min(5.8, 2.7 + this.t * .0007);
     this.dist += this.speed / 8;
-    if (L.air) { L.v -= .3; L.alt += L.v; if (L.alt <= 0) { L.alt = 0; L.v = 0; L.air = false; L.jumps = 0; this.dust(); if (this.jbuf > 0) { this.jbuf = 0; this.tap(); } } }
+    if (L.air) { L.v -= .3; L.alt += L.v; if (L.alt <= 0) { L.alt = 0; L.v = 0; L.air = false; L.jumps = 0; L.landT = 8; this.dust(); if (this.jbuf > 0) { this.jbuf = 0; this.tap(); } } }
     if (this.jbuf > 0) this.jbuf--;
     L.state = L.air ? "jump" : "run"; L.t++; L.vy = -L.v; L.y = this.GROUND - L.alt;
     if (!L.air && this.t % 5 === 0) this.part(L.x - 4, this.GROUND - 1, -this.speed * .4, -.3, "#7C779E", 10, 1, .02);
@@ -4981,7 +5019,12 @@ const Runner = {
     c.globalAlpha = 1;
     if (this.trail.length > 8) this.trail.splice(0, this.trail.length - 8);
     if (L.state === "hit") { c.save(); c.translate(Math.round(L.x), Math.round(L.y)); c.rotate(-Math.min(1, L.t / 10) * Math.PI / 2 * .9); c.drawImage(b, -48, -88); c.restore(); }
-    else c.drawImage(b, Math.round(L.x) - 48, Math.round(L.y) - 88);
+    else {
+      // сжатие и растяжение: тянется в прыжке, приседает при приземлении
+      const st = L.air ? Math.min(1, Math.abs(L.v) / 5.6) * .07 : 0, sq = L.landT > 0 ? L.landT / 8 * .11 : 0;
+      if (L.landT > 0 && this.running) L.landT--;
+      c.save(); c.translate(L.x, L.y); c.scale(1 - st + sq, 1 + st - sq); c.drawImage(b, -48, -88); c.restore();
+    }
     for (const p of this.parts) softDot(c, p.x, p.y, p.s, p.col, Math.max(0, 1 - p.age / p.life));
     c.globalAlpha = 1;
     this.drawFront(c);
@@ -6818,16 +6861,55 @@ const COVERS = {
   }
 };
 Object.entries(COVERS).forEach(([k, fn]) => { ICON_FN["cover_" + k] = fn; });
+// иллюстрация для приветствия: Коля и Лера-купидон, между ними сердце
+ICON_FN.heroArt = () => {
+  const c = hqCanvas(240, 150, 3), x = c.getContext("2d");
+  coverGlow(x, 120, 80, 110, "240,166,184", .28); coverGlow(x, 120, 70, 50, "244,214,154", .3);
+  coverHero(x, FBY.kolya, 70, 138, 1.9, { state: "idle", f: 1, t: 20 });
+  coverHero(x, FBY.lera, 168, 138, 1.9, { state: "win", f: -1, t: 10 });
+  const h = paint(SPR.heart, 3); coverGlow(x, 120, 54, 26, "255,94,138", .6); x.drawImage(h, 120 - h.width / 2, 54 - h.height / 2);
+  return c;
+};
+
+/* ====== Подарок на первом экране: векторная коробка с лентой и бантом ====== */
+// размеры как у прежних картинок: крышка 16×8, коробка 16×7 (в клетках), рисуем в 20 раз крупнее
+ICON_FN.giftBox = () => {
+  const W = 320, H = 140, c = hqCanvas(W, H, 2), x = c.getContext("2d");
+  const body = x.createLinearGradient(0, 0, W, 0); body.addColorStop(0, "#A8202A"); body.addColorStop(.45, "#E2353D"); body.addColorStop(1, "#8E1A24");
+  x.fillStyle = body; x.beginPath(); x.roundRect ? x.roundRect(22, 0, W - 44, H - 4, [0, 0, 18, 18]) : x.rect(22, 0, W - 44, H - 4); x.fill();
+  const sh = x.createLinearGradient(0, 0, 0, H); sh.addColorStop(0, "rgba(0,0,0,.28)"); sh.addColorStop(.25, "rgba(0,0,0,0)"); x.fillStyle = sh; x.fillRect(22, 0, W - 44, H);
+  const rib = x.createLinearGradient(W / 2 - 26, 0, W / 2 + 26, 0); rib.addColorStop(0, "#C99A2E"); rib.addColorStop(.5, "#FFE6A0"); rib.addColorStop(1, "#B8861E");
+  x.fillStyle = rib; x.fillRect(W / 2 - 24, 0, 48, H - 4);
+  x.fillStyle = "rgba(255,255,255,.18)"; x.beginPath(); x.roundRect ? x.roundRect(40, 14, 26, H - 40, 12) : x.rect(40, 14, 26, H - 40); x.fill();
+  return c;
+};
+ICON_FN.giftLid = () => {
+  const W = 320, H = 160, c = hqCanvas(W, H, 2), x = c.getContext("2d");
+  const rib = (a, b) => { const g = x.createLinearGradient(a, 0, b, 0); g.addColorStop(0, "#B8861E"); g.addColorStop(.5, "#FFE6A0"); g.addColorStop(1, "#B8861E"); return g; };
+  // бант: две петли и узел
+  [[-1, W / 2 - 54], [1, W / 2 + 54]].forEach(([d, cx]) => {
+    const g = x.createRadialGradient(cx - d * 10, 62, 6, cx, 70, 58); g.addColorStop(0, "#FFF0B8"); g.addColorStop(.6, "#E9B949"); g.addColorStop(1, "#A8761A");
+    x.fillStyle = g; x.beginPath(); x.ellipse(cx, 72, 58, 34, d * -.45, 0, 6.283); x.fill();
+    x.fillStyle = "rgba(120,70,10,.55)"; x.beginPath(); x.ellipse(cx + d * 6, 76, 26, 13, d * -.45, 0, 6.283); x.fill();
+  });
+  x.fillStyle = rib(W / 2 - 22, W / 2 + 22); x.beginPath(); x.ellipse(W / 2, 92, 24, 20, 0, 0, 6.283); x.fill();
+  // крышка
+  const lid = x.createLinearGradient(0, 0, W, 0); lid.addColorStop(0, "#B8242E"); lid.addColorStop(.45, "#F04A52"); lid.addColorStop(1, "#9A1C26");
+  x.fillStyle = lid; x.beginPath(); x.roundRect ? x.roundRect(8, 104, W - 16, 56, 14) : x.rect(8, 104, W - 16, 56); x.fill();
+  x.fillStyle = "rgba(255,255,255,.28)"; x.fillRect(22, 110, W - 44, 5);
+  x.fillStyle = rib(W / 2 - 26, W / 2 + 26); x.fillRect(W / 2 - 26, 104, 52, 56);
+  return c;
+};
 
 /* ====== Вступление ====== */
 const Intro = {
   taps: 0, opened: false,
   init() {
     const tips = ["Охлаждаем колу…", "Растапливаем шоколад…", "Квасим капусту…", "Точим стрелы купидона…", "Вешаем диско-шар…", "Прячем подарок…"];
-    const fill = $("#loaderFill"), tip = $("#loaderTip"), dur = reduced || prog.opened ? 900 : 2800, t0 = performance.now();
+    const fill = $("#loaderFill"), tip = $("#loaderTip"), dur = reduced ? 900 : prog.opened ? 3200 : 4200, t0 = performance.now();
     this.iv = setInterval(() => {
       const k = Math.min(1, (performance.now() - t0) / dur);
-      fill.style.width = (Math.round(k * 14) / 14 * 100) + "%";
+      fill.style.width = (k * 100) + "%";
       tip.textContent = tips[Math.min(tips.length - 1, Math.floor(k * tips.length))];
       if (k >= 1) { clearInterval(this.iv); setTimeout(() => this.ready(), 250); }
     }, 90);
@@ -6894,7 +6976,7 @@ const Menu = {
     Player.suggest("night");
     $("#levels").innerHTML = LEVELS.map(l => {
       const st = l.stat();
-      return `<button class="lvl${l.wide ? " wide" : ""}${l.cls ? " " + l.cls : ""}" type="button" data-lv="${l.id}">` +
+      return `<button class="lvl${l.wide ? " wide" : ""}${l.cls ? " " + l.cls : ""}" type="button" data-lv="${l.id}" style="--i:${LEVELS.indexOf(l)}">` +
         (l.isNew ? `<span class="badge">НОВОЕ</span>` : "") +
         `<img class="lv-ic${l.secret && !secretOpen() ? " locked" : ""}" src="${icon(ICON_FN["cover_" + l.id] ? "cover_" + l.id : l.ic)}" alt=""><span class="lv-txt"><h3>${l.title}</h3><p>${l.text}</p>${st ? `<span class="lv-stat">${st}</span>` : ""}</span></button>`;
     }).join("");
@@ -7407,9 +7489,10 @@ const Final = {
 
 /* ====== Запуск ====== */
 function start(data) {
+  applyLook();
   $$("img[data-icon]").forEach(img => { img.src = icon(img.dataset.icon); });
   Stars.init(); FX.init(); Player.init();
-  Intro.init(); Menu.init(); Game.init(); Dance.init(); Sky.init(); Runner.init(); Tower.init(); Fight.init(); Surv.init(); applyLook(); Wardrobe.init(); Roof.init();
+  Intro.init(); Menu.init(); Game.init(); Dance.init(); Sky.init(); Runner.init(); Tower.init(); Fight.init(); Surv.init(); Wardrobe.init(); Roof.init();
   Object.assign(Scenes, { menu: Menu, catch: Game, dance: Dance, stars: Sky, runner: Runner, tower: Tower, fight: Fight, surv: Surv, wardrobe: Wardrobe, roof: Roof, final: Final });
   $("#menuBtn").addEventListener("click", () => go("menu"));
 
