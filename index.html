@@ -2408,6 +2408,7 @@ function drawHuman(c, RX, RY, f, P, F, ex, S) {
   const sF = [sh[0] + f, sh[1] + 1], sB = [sh[0] - 2 * f, sh[1] + 1];
   const eF = J(sF, P.aF[0], S.ua, f), hF = J(eF, P.aF[1], S.fa, f);
   const eB = J(sB, P.aB[0], S.ua, f), hB = J(eB, P.aB[1], S.fa, f);
+  if (F) { F.hand = hF; F.foot = fF; }
   if (S.wings) drawWings(c, sB, f, P.wing == null ? .3 : P.wing);
   if (S.hairBack) S.hairBack(c, head[0], head[1], f);
   limb(c, sB, eB, hB, 3, S.sleeveD, S.skinD); fist(c, hB, S.skinD);
@@ -2600,6 +2601,7 @@ function drawFood(c, RX, RY, f, P, F, ex, S) {
   const sF = [cx + (S.bw / 2 - 1) * f, ay], sB = [cx - (S.bw / 2 - 1) * f, ay];
   const eF = J(sF, P.aF[0], S.arm / 2, f), hF = J(eF, P.aF[1], S.arm / 2, f);
   const eB = J(sB, P.aB[0], S.arm / 2, f), hB = J(eB, P.aB[1], S.arm / 2, f);
+  if (F) { F.hand = hF; F.foot = fF; }
   hose(c, sB, eB, hB); glove(c, hB);
   hose(c, hipB, kB, fB); shoe(c, fB, f, S.shoe, 5, 3);
   S.body(c, cx, top, f, ex, F);
@@ -2765,14 +2767,14 @@ const Post = {
     h.src.style.filter = reduced ? "" : g.f; h.tint.style.background = g.tint;
   },
   // начать кадр HD-слоя; x, y дальше в координатах мира (cx, cy — камера)
-  begin(h, W, H, cx = 0, cy = 0) {
+  begin(h, W, H, cx = 0, cy = 0, z = 1) {
     const hd = h.hd, cw = Math.round(h.wrap.clientWidth * this.dpr), ch = Math.round(h.wrap.clientHeight * this.dpr);
     if (cw && (hd.width !== cw || hd.height !== ch)) { hd.width = cw; hd.height = ch; }
     const k = hd.width / W, x = h.x;
     h.k = k; h.W = W; h.H = H;
     x.setTransform(1, 0, 0, 1, 0, 0); x.globalAlpha = 1; x.globalCompositeOperation = "source-over";
     x.clearRect(0, 0, hd.width, hd.height);
-    x.setTransform(k, 0, 0, k, -cx * k, -cy * k);
+    x.setTransform(k * z, 0, 0, k * z, -cx * k * z, -cy * k * z);
     return x;
   },
   glow(h, x0, y0, r, rgb, a = 1) {
@@ -2868,6 +2870,8 @@ const MOVES = {
   airKick: { su: 4, act: 70, rec: 0, dmg: 8, reach: 21, y0: 20, y1: -4, kb: 2.2, stun: 15, air: true,
     k: [[0, { lF: [60, -10], lB: [25, -45] }], [4, { lF: [72, 65], lB: [10, -50] }], [80, { lF: [72, 65], lB: [10, -50] }]] }
 };
+// у ударов ногой след рисуется за ногой
+Object.entries(MOVES).forEach(([k, m]) => { m.foot = /ick/i.test(k); });
 const SPM = {
   beam: { dmg: 13, kb: 3, stun: 22, heavy: true },
   arrow: { dmg: 7, kb: 1.2, stun: 14, effect: { charm: 80 } },
@@ -2909,7 +2913,7 @@ function newFighter(def, x, f, cpu) {
   return { def, x, y: G.GROUND, vx: 0, vy: 0, f, hp: def.hp, state: "idle", t: 0, atk: null, hitThis: false, stun: 0, cd: 60,
     flash: 0, frozen: 0, charm: 0, slow: 0, down: 0, inv: 0, air: false, jumps: 0, combo: 0, comboT: 0, cpu, hidden: false,
     knock: false, landed: false, pullTo: null, sd: {}, ai: { next: 0, intent: "wait", hold: 0, react: -1 },
-    meter: 0, ult: false, scale: def.scale || 1, tint: null, tintTop: null, bite: false };
+    meter: 0, ult: false, scale: def.scale || 1, tint: null, tintTop: null, bite: false, buf: hqCanvas(96, 96, 4), trail: [] };
 }
 
 /* --- частицы --- */
@@ -3844,6 +3848,15 @@ const Fight = {
     if (G.hintT > 0 && --G.hintT === 0) $("#fhint").textContent = "";
     if (G.zoom) { if (G.zoom.hold > 0) G.zoom.hold--; else G.zoom.k += (1 - G.zoom.k) * .08; if (G.zoom.k < 1.002) G.zoom = null; }
     if (G.flashA > 0) G.flashA = Math.max(0, G.flashA - .03);
+    if (G.p1 && G.p2) {
+      const W = G.W, H = G.H, a = G.p1, b = G.p2, mid = (a.x + b.x) / 2, dist = Math.abs(a.x - b.x);
+      const tk = clamp(W * .62 / (dist + 70), 1, 1.45);
+      const cam = G.cam || (G.cam = { x: mid, y: H / 2, k: 1 });
+      cam.k += (tk - cam.k) * .05; cam.x += (mid - cam.x) * .1;
+      let ty = G.GROUND - H * .34 / cam.k; const top = Math.min(a.y, b.y) - 58;
+      if (ty - H / (2 * cam.k) > top) ty = top + H / (2 * cam.k);
+      cam.y += (ty - cam.y) * .1;
+    }
     if (G.koFx > 0) G.koFx--;
     if (G.rings) { G.rings.forEach(r => { r.life--; r.r += r.big ? 3.2 : 2.2; }); G.rings = G.rings.filter(r => r.life > 0); }
     if (G.stop > 0) { G.stop--; return; }
@@ -4069,7 +4082,13 @@ const Fight = {
     c.imageSmoothingEnabled = true;
     c.save();
     if (G.shake > 0 && !reduced) c.translate(Math.round(rand(-G.shake, G.shake)), Math.round(rand(-G.shake, G.shake) * .6));
-    const Z = G.zoom; if (Z && !reduced) { const zx = clamp(Z.x, W * .25, W * .75), zy = clamp(Z.y, H * .3, H * .8); c.translate(zx, zy); c.scale(Z.k, Z.k); c.translate(-zx, -zy); }
+    // камера: общий план на обоих бойцов + короткий наезд при сильном ударе
+    const cam = G.cam || { x: W / 2, y: H / 2, k: 1 }, Z = G.zoom;
+    let ck = cam.k, cx = cam.x, cy = cam.y;
+    if (Z && !reduced) { ck *= Z.k; cx += (Z.x - cx) * (1 - 1 / Z.k); cy += (Z.y - cy) * (1 - 1 / Z.k); }
+    cx = clamp(cx, W / (2 * ck), W - W / (2 * ck)); cy = clamp(cy, H / (2 * ck), H - H / (2 * ck));
+    c.translate(W / 2, H / 2); c.scale(ck, ck); c.translate(-cx, -cy);
+    G.view = { x0: cx - W / (2 * ck), y0: cy - H / (2 * ck), k: ck };
     c.drawImage(G.bg, 0, 0);
     const base = H - 180;
     // пар над кастрюлей и мерцание вывески
@@ -4101,6 +4120,17 @@ const Fight = {
     [G.p1, G.p2].forEach(F => { if (F.hidden || !F.buf) return; c.save(); c.globalAlpha = .2; c.translate(0, 2 * G.GROUND + 2); c.scale(1, -1); c.drawImage(F.buf, Math.round(F.x) - 48, Math.round(F.y) - 88); c.restore(); });
     c.restore();
     (busy(G.p1) ? [G.p2, G.p1] : [G.p1, G.p2]).forEach(F => this.drawFighter(c, F));
+    for (const F of [G.p1, G.p2]) {
+      const atk = F.state === "attack" && F.atk && !F.hidden, tip = atk && (F.atk.foot ? F.foot : F.hand);
+      if (tip && F.t >= F.atk.su - 2 && F.t <= F.atk.su + F.atk.act + 2) F.trail.push([F.x + (tip[0] - 48) * F.scale, F.y + (tip[1] - 88) * F.scale]);
+      else if (F.trail.length) F.trail.shift();
+      if (F.trail.length > 6) F.trail.shift();
+      if (F.trail.length > 1 && !reduced) {
+        c.save(); c.lineCap = "round"; c.lineJoin = "round";
+        for (let i = 1; i < F.trail.length; i++) { const k = i / F.trail.length; c.globalAlpha = k * .75; c.strokeStyle = F.def.splash[0]; c.lineWidth = 1 + k * 4; c.beginPath(); c.moveTo(...F.trail[i - 1]); c.lineTo(...F.trail[i]); c.stroke(); c.globalAlpha = k * .9; c.strokeStyle = "#FFFFFF"; c.lineWidth = .5 + k * 1.6; c.stroke(); }
+        c.restore();
+      }
+    }
     for (const e of G.fx) if (e.type === "beam") this.drawBeam(c, e);
     [G.p1, G.p2].forEach(F => {
       if (F.state !== "special" || !(F.sd.L > 0)) return;
@@ -4133,7 +4163,8 @@ const Fight = {
   drawHD() {
     const h = this.post || (this.post = Post.attach($("#fWrap"), this.cv, "arena"));
     const W = G.W, H = G.H, t = G.frame;
-    Post.begin(h, W, H);
+    const V = G.view || { x0: 0, y0: 0, k: 1 };
+    Post.begin(h, W, H, V.x0, V.y0, V.k);
     if (!reduced) { Post.rays(h, W * .15, -10, H * 1.3, "255,190,120", .045, t, 3, .45, Math.PI / 2 - .35); Post.rays(h, W * .85, -10, H * 1.3, "140,160,255", .045, t, 3, .45, Math.PI / 2 + .35); }
     Post.haze(h, 0, G.GROUND - 30, W, 34, "255,140,90", .18, true);
     [G.p1, G.p2].forEach(F => {
@@ -5560,9 +5591,9 @@ ICON_FN.towerIc = () => {
 const SV_STAGES = [
   { name: "НОЧЬ 1", sub: "ТИХИЙ ПАРК", len: 180, table: [["cloud", 10], ["clock", 5]], boss: "bigClock" },
   { name: "НОЧЬ 2", sub: "ДОЖДЛИВАЯ АЛЛЕЯ", len: 180, table: [["cloud", 5], ["clock", 6], ["books", 5], ["drop", 6]], boss: "general" },
-  { name: "НОЧЬ 3", sub: "ГРОЗОВОЙ ЛЕС", len: 180, table: [["clock", 4], ["books", 6], ["drop", 5], ["zap", 3], ["brocc", 4]], boss: "brocKing" },
+  { name: "НОЧЬ 3", sub: "ГРОЗОВОЙ ЛЕС", len: 180, table: [["cloud", 3], ["clock", 4], ["books", 6], ["drop", 5], ["zap", 2], ["brocc", 3]], boss: "brocKing" },
   { name: "НОЧЬ 4", sub: "ТУМАННОЕ ОЗЕРО", len: 180, table: [["books", 5], ["brocc", 5], ["ghost", 4], ["zap", 3], ["drop", 5]], boss: "homework" },
-  { name: "НОЧЬ 5", sub: "ПОСЛЕДНИЙ РАССВЕТ", len: 210, table: [["brocc", 6], ["ghost", 6], ["zap", 5], ["drop", 5], ["books", 3], ["clock", 3]], boss: "king" }
+  { name: "НОЧЬ 5", sub: "ПОСЛЕДНИЙ РАССВЕТ", len: 210, table: [["brocc", 5], ["ghost", 5], ["zap", 3], ["drop", 5], ["books", 4], ["clock", 4]], boss: "king" }
 ];
 const SV_BOSSES = {
   bigClock: { name: "БУДИЛЬНИК-ВЕЛИКАН", hp: 1500, sp: .75, r: 18, spr: "clockBig", atk: ["charge", "ring"], every: 150 },
@@ -5572,7 +5603,9 @@ const SV_BOSSES = {
   king: { name: "КОРОЛЬ ХМУРИ", hp: 10000, sp: .65, r: 26, spr: "boss", atk: ["ring", "summon", "charge", "spiral", "slam"], every: 115 }
 };
 // хмурики крепнут с каждой минутой (t — минуты с начала)
-const svMul = t => 1 + t * .4 + t * t * .022;
+// Все настройки сложности в одном месте
+const SV_TUNE = { hpA: .42, hpB: .02, dens: .85, densDiv: 42, kbStage: .15, elite0: .008, eliteS: .007, strikes: true, strikeGap: 270, strikeStep: 28 };
+const svMul = t => 1 + t * SV_TUNE.hpA + t * t * SV_TUNE.hpB;
 const SV_ENEMIES = {
   cloud: { hp: 7, sp: .55, dmg: 8, xp: 1, r: 8 },
   clock: { hp: 12, sp: .8, dmg: 10, xp: 2, r: 8 },
@@ -5761,12 +5794,15 @@ const Surv = {
     this.weapons = Object.fromEntries(Object.entries(sv.weapons).map(([k, w]) => [k, { lvl: w.lvl, evo: w.evo, cd: 10 }]));
     this.running = true; $("#svIntro").hidden = true; $("#svOver").hidden = true;
     this.inv(); this.hud(); this.stageBanner();
+    // попытка не пропадает: за каждое поражение на этой ночи — подарок-улучшение (до 5)
+    const gifts = Math.min(5, sv.tries || 0);
+    if (gifts) { this.pending = gifts; this.banner = { text: SV_STAGES[this.stage].name, sub: `ПОДАРКОВ ЗА ПОПЫТКИ: ${gifts}`, life: 150 }; }
   },
   syncButtons() {
     const sv = this.saved();
     ["#svCont", "#svCont2"].forEach(id => { const b = $(id); b.hidden = !sv; if (sv) b.textContent = `Продолжить: ${SV_STAGES[sv.stage].name.toLowerCase().replace("ночь", "Ночь")}`; });
   },
-  xpNeed(l) { return Math.round(5 + l * 3 + l * l * .35); },
+  xpNeed(l) { return Math.round(5 + l * 3.5 + l * l * .42); },
   hud() {
     const s = Math.floor(this.t / 60), L = this.L;
     $("#svTime").textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
@@ -5783,7 +5819,7 @@ const Surv = {
   /* --- враги --- */
   spawnEnemy(type, ang, rad0) {
     const d = SV_ENEMIES[type], L = this.L, a = ang == null ? rand(0, 6.283) : ang, rad = rad0 || Math.hypot(this.W, this.H) / 2 + 20;
-    const mul = svMul(this.t / 3600), elite = type !== "storm" && Math.random() < .006 + this.stage * .006;
+    const mul = svMul(this.t / 3600), elite = type !== "storm" && Math.random() < SV_TUNE.elite0 + this.stage * SV_TUNE.eliteS;
     const hp = d.hp * mul * (elite ? 6 : 1);
     const e = { type, x: L.x + Math.cos(a) * rad, y: L.y + Math.sin(a) * rad, hp, max: hp, sp: d.sp * rand(.9, 1.1) * (elite ? .85 : 1), dmg: d.dmg * (1 + this.stage * .12) * (elite ? 1.5 : 1), r: d.r * (elite ? 1.4 : 1), xp: d.xp * (elite ? 10 : 1), flash: 0, hitCd: {}, slow: 0, ph: rand(0, 6), shootT: rand(60, 160), elite };
     this.en.push(e); return e;
@@ -5798,13 +5834,18 @@ const Surv = {
   spawnTick() {
     const S = SV_STAGES[this.stage], sec = this.st / 60;
     // события посреди ночи
-    if (sec >= 55 && !this.ev.swarm && this.stage > 0) { this.ev.swarm = true; this.banner = { text: "РОЙ!", sub: "КАПЛИ ЛЕТЯТ", life: 90 }; const a = rand(0, 6.283); for (let i = 0; i < 22 + this.stage * 6; i++) this.spawnEnemy("drop", a + rand(-.25, .25), Math.hypot(this.W, this.H) / 2 + 20 + i * 4); }
-    if (sec >= 110 && !this.ev.ring) { this.ev.ring = true; this.banner = { text: "ОКРУЖЕНИЕ!", sub: "ПРОРВИСЬ НАРУЖУ", life: 90 }; const n = 26 + this.stage * 8; for (let i = 0; i < n; i++) this.spawnEnemy(this.stage < 2 ? "cloud" : "books", i / n * 6.283, 150); }
+    if (sec >= 55 && !this.ev.swarm && this.stage > 0) { this.ev.swarm = true; this.banner = { text: "РОЙ!", sub: "КАПЛИ ЛЕТЯТ", life: 90 }; const a = rand(0, 6.283); for (let i = 0; i < 16 + this.stage * 2; i++) this.spawnEnemy("drop", a + rand(-.25, .25), Math.hypot(this.W, this.H) / 2 + 20 + i * 4); }
+    if (sec >= 110 && !this.ev.ring) {
+      // кольцо с проходом: можно прорваться через стену или найти брешь
+      this.ev.ring = true; this.banner = { text: "ОКРУЖЕНИЕ!", sub: "ИЩИ ПРОХОД", life: 90 };
+      const n = 22 + this.stage * 5, gap = rand(0, 6.283);
+      for (let i = 0; i < n; i++) { const a = gap + .55 + i / n * (6.283 - 1.1); this.spawnEnemy(this.stage < 3 ? "cloud" : "books", a, 150); }
+    }
     if (!this.bossOn && this.st >= S.len * 60 && !this.boss) this.spawnBoss();
     if (--this.spawnT > 0) return;
     this.spawnT = this.bossOn ? 60 : 38;
-    if (this.en.length > 180) return;
-    const n = Math.max(1, Math.round((1 + sec / 45 + this.stage * .8) * (this.bossOn ? .5 : 1)));
+    if (this.en.length > 200) return;
+    const n = Math.max(1, Math.round((1 + sec / SV_TUNE.densDiv + Math.min(this.stage, 3) * SV_TUNE.dens) * (this.bossOn ? .5 : 1)));
     const table = S.table, tot = table.reduce((a, [, w]) => a + w, 0), base = rand(0, 6.283);
     for (let i = 0; i < n; i++) {
       let r = Math.random() * tot, k = table[0][0];
@@ -5852,7 +5893,7 @@ const Surv = {
     const crit = Math.random() < this.L.crit;
     dmg = Math.round(dmg * this.L.dmgMul * (crit ? 2 : 1));
     e.hp -= dmg; e.flash = 4;
-    if (kx || ky) { const k = (e.type === "boss" ? .05 : e.type === "storm" || e.elite || e.type === "brocc" || e.type === "ghost" ? .3 : 1) / (1 + this.stage * .35); e.x += kx * k; e.y += ky * k; }
+    if (kx || ky) { const k = (e.type === "boss" ? .05 : e.type === "storm" || e.elite || e.type === "brocc" || e.type === "ghost" ? .3 : 1) / (1 + this.stage * SV_TUNE.kbStage); e.x += kx * k; e.y += ky * k; }
     if (this.texts.length < 24 || crit) this.texts.push({ s: String(dmg), x: e.x + rand(-3, 3), y: e.y - e.r - 2, age: 0, life: 28, col: crit ? "#FFD23F" : null });
     if (e.hp <= 0) this.kill(e);
   },
@@ -6154,9 +6195,9 @@ const Surv = {
     // Гроза: со 2-й ночи молнии бьют туда, где стоит Лера. Красный круг — секунда, чтобы уйти.
     // Кто стоит на месте дольше 2,5 с, получает молнии чаще и уже с 1-й ночи.
     const afk = this.still > 150;
-    if ((this.stage >= 1 || afk) && --this.nextStrike <= 0) {
-      this.nextStrike = afk ? 75 : Math.max(120, 270 - this.stage * 35);
-      const n = afk ? 2 : this.stage >= 3 ? 2 : 1;
+    if (SV_TUNE.strikes && (this.stage >= 1 || afk) && --this.nextStrike <= 0) {
+      this.nextStrike = afk ? 75 : Math.max(120, SV_TUNE.strikeGap - this.stage * SV_TUNE.strikeStep);
+      const n = afk || this.stage >= 4 ? 2 : 1;
       for (let i = 0; i < n; i++) { const a = rand(0, 6.283), off = i ? rand(26, 60) : 0; this.strikes.push({ x: L.x + Math.cos(a) * off, y: L.y + Math.sin(a) * off * .7, t: 0, T: 62, R: 21, dmg: 18 + this.stage * 6 }); }
       if (!this.stormHint) { this.stormHint = true; this.banner = { text: "ГРОЗА!", sub: "КРАСНЫЙ КРУГ — БЕГИ", life: 110 }; }
     }
@@ -6200,7 +6241,7 @@ const Surv = {
     for (const g of this.gems) {
       const dx = L.x - g.x, dy = L.y - 8 - g.y, d = Math.hypot(dx, dy) || 1;
       g.age = (g.age || 0) + 1;
-      if (d < L.magnet || g.pull || g.age > 480) { g.pull = true; const sp = Math.min(5, 1.5 + (L.magnet / d) * .6); g.x += dx / d * sp; g.y += dy / d * sp; }
+      if (d < L.magnet || g.pull || g.age > 900) { g.pull = true; const sp = Math.min(5, 1.5 + (L.magnet / d) * .6); g.x += dx / d * sp; g.y += dy / d * sp; }
       if (d < 7) { g.got = true; this.xp += g.v * L.xpMul; if (Math.random() < .25) SFX.coin(); }
     }
     this.gems = this.gems.filter(g => !g.got);
@@ -6237,6 +6278,7 @@ const Surv = {
     const b = this.best, stage = won ? 5 : this.stage, better = !b || (b.stage || 0) < stage || ((b.stage || 0) === stage && s > b.s);
     if (better) { this.best = { s, won, stage, kills: this.kills, lvl: this.lvl }; setProg("survBest", this.best); }
     if (won) store.set("lera-surv-save", null);
+    else { const sv = this.saved(); if (sv && sv.stage === this.stage) { sv.tries = (sv.tries || 0) + 1; store.set("lera-surv-save", sv); } }
     if (s >= 120) Toast.give("surv2", "Две минуты в строю", "heart");
     if (Object.values(this.weapons).some(w => w.evo)) Toast.give("survEvo", "Первая эволюция", "star");
     this.hud();
@@ -6245,7 +6287,7 @@ const Surv = {
       $("#svOverTitle").textContent = won ? "ПОБЕДА!" : better && s > 0 ? "Новый рекорд!" : "Хмурики победили";
       $("#svOverText").textContent = won
         ? `Все пять ночей позади! Лера продержалась ${txt} и прогнала Короля Хмури. Уровень ${this.lvl}, хмуриков: ${this.kills}.`
-        : `${SV_STAGES[this.stage].name[0]}${SV_STAGES[this.stage].name.slice(1).toLowerCase()}, ${txt} в бою. Уровень ${this.lvl}, хмуриков: ${this.kills}.` + (this.saved() ? " Можно продолжить с начала этой ночи — вся прокачка сохранилась." : "");
+        : `${SV_STAGES[this.stage].name[0]}${SV_STAGES[this.stage].name.slice(1).toLowerCase()}, ${txt} в бою. Уровень ${this.lvl}, хмуриков: ${this.kills}.` + (this.saved() ? " Можно продолжить с начала этой ночи — вся прокачка сохранилась, а за каждую попытку Лера получит подарок-улучшение." : "");
       this.syncButtons();
       $("#svOver").hidden = false;
     }, won ? 1400 : 900);
