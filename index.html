@@ -7551,6 +7551,8 @@ picReady.then(() => {
 });
 // сцена битвы пересобирается, когда нарисованная кухня загрузилась (f-fight.js собирается раньше этого файла)
 picReady.then(() => { if (G && G.W) G.bg = buildStage(G.W, G.H); });
+// обложки меню рисуются с нарисованными фонами — пересобрать, если картинки загрузились позже меню
+picReady.then(() => { Object.keys(urlCache).filter(k => k.startsWith("cover_")).forEach(k => { delete urlCache[k]; }); if (current === "menu") Menu.enter(); });
 
 /* ====== Гардероб Леры ====== */
 const Wardrobe = {
@@ -7759,8 +7761,7 @@ function coverFinish(x) {
 const COVERS = {
   runner() {
     const L = LOCS[1], G0 = 118, [c, x] = coverBase([[0, "#000"], [1, "#000"]]);
-    x.drawImage(skyCanvas(L, CW, CH, G0, G0 - 56), 0, 0);
-    x.drawImage(hillsTile(300, 70, "#7A3A6A", "#9A4E7E"), -20, G0 - 66);
+    if (!picCover(x, "bg_park", CW, G0 + 4, .05)) { x.drawImage(skyCanvas(L, CW, CH, G0, G0 - 56), 0, 0); x.drawImage(hillsTile(300, 70, "#7A3A6A", "#9A4E7E"), -20, G0 - 66); }
     x.drawImage(treesTile(280, 64, 4, true), -10, G0 - 62);
     const g = x.createLinearGradient(0, G0, 0, CH); g.addColorStop(0, "#8BE06A"); g.addColorStop(.15, "#4FA63F"); g.addColorStop(.3, "#6E4630"); g.addColorStop(1, "#3A2216");
     x.fillStyle = g; x.fillRect(0, G0, CW, CH - G0);
@@ -7771,15 +7772,16 @@ const COVERS = {
     coverFinish(x); return c;
   },
   tower() {
-    const [c, x] = coverBase([[0, "#3A5AB0"], [1, "#A8D0F5"]]);
-    coverGlow(x, 200, 0, 120, "255,236,190", .45);
+    const [c, x] = coverBase([[0, "#3A5AB0"], [1, "#A8D0F5"]]), pic = picCover(x, "bg_sky", CW, CH + 40, .1);
+    coverGlow(x, 200, 0, 120, "255,236,190", pic ? .2 : .45);
     [[40, 30, 26, 120], [170, 66, 26, 90]].forEach(([cx, top, w, h]) => {
-      x.fillStyle = "#F4F6FF"; x.beginPath(); x.roundRect ? x.roundRect(cx, top, w, h, 4) : x.rect(cx, top, w, h); x.fill();
+      x.fillStyle = pic ? "#8A4038" : "#F4F6FF"; x.beginPath(); x.roundRect ? x.roundRect(cx, top, w, h, 4) : x.rect(cx, top, w, h); x.fill();
+      if (pic) { x.fillStyle = "#D9A07A"; x.fillRect(cx - 2, top - 2, w + 4, 4); x.strokeStyle = "rgba(58,30,38,.6)"; x.lineWidth = .8; for (let yy = top + 8; yy < top + h; yy += 7) { x.beginPath(); x.moveTo(cx, yy); x.lineTo(cx + w, yy); x.stroke(); } }
       const cy = x.createLinearGradient(cx, 0, cx + w, 0); cy.addColorStop(0, "rgba(40,60,120,.35)"); cy.addColorStop(.35, "rgba(255,255,255,.2)"); cy.addColorStop(1, "rgba(40,60,120,.45)");
       x.fillStyle = cy; x.fillRect(cx, top, w, h);
       coverGlow(x, cx + w + 2, top + 20, 12, "255,210,63", .6);
     });
-    for (let k = 0; k < 5; k++) { x.fillStyle = "rgba(255,255,255,.7)"; x.beginPath(); x.ellipse(20 + k * 52, 130 + (k % 2) * 8, 26, 9, 0, 0, 6.283); x.fill(); }
+    if (!pic) for (let k = 0; k < 5; k++) { x.fillStyle = "rgba(255,255,255,.7)"; x.beginPath(); x.ellipse(20 + k * 52, 130 + (k % 2) * 8, 26, 9, 0, 0, 6.283); x.fill(); }
     coverHero(x, FBY.lera, 120, 92, 1.82, { state: "jump", vy: -2, jumps: 2, t: 4, f: 1 });
     coverFinish(x); return c;
   },
@@ -7804,6 +7806,7 @@ const COVERS = {
   },
   catch() {
     const [c, x] = coverBase([[0, "#2A1E5A"], [.7, "#7A3A6E"], [1, "#C25A7A"]]);
+    picCover(x, "bg_rain", CW, 132, .1);
     coverGlow(x, 190, 40, 70, "255,214,140", .3);
     const g = x.createLinearGradient(0, 122, 0, CH); g.addColorStop(0, "#6FD35A"); g.addColorStop(.25, "#3E9A3A"); g.addColorStop(.35, "#7A4A2E"); g.addColorStop(1, "#3A2216"); x.fillStyle = g; x.fillRect(0, 122, CW, CH - 122);
     [["cola", 54, 30], ["choco", 160, 22], ["kraut", 110, 6], ["heart", 196, 66], ["cola", 30, 82]].forEach(([k, a, b]) => { const s = paint(SPR[k], 3); coverGlow(x, a, b + s.height / 2, s.width, "255,220,150", .35); x.drawImage(s, a - s.width / 2, b); });
@@ -7812,6 +7815,7 @@ const COVERS = {
   },
   dance() {
     const [c, x] = coverBase([[0, "#160F2E"], [1, "#2E1A48"]]);
+    picCover(x, "bg_club", CW, 150, .3);
     x.save(); x.globalCompositeOperation = "lighter";
     [[40, "255,94,138"], [200, "46,196,169"]].forEach(([bx, rgb]) => { const g = x.createLinearGradient(bx, 0, CW / 2, CH); g.addColorStop(0, `rgba(${rgb},.45)`); g.addColorStop(1, `rgba(${rgb},0)`); x.fillStyle = g; x.beginPath(); x.moveTo(bx - 4, 0); x.lineTo(bx + 4, 0); x.lineTo(CW / 2 + 50, CH); x.lineTo(CW / 2 - 50, CH); x.closePath(); x.fill(); });
     x.restore();
