@@ -710,6 +710,26 @@ body,#app{background:#0E1430}
 #levels .lvl{animation:cardIn .5s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0) * 45ms)}
 @keyframes cardIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.studio,.studio-mark,.studio-name,.title-logo,#levels .lvl{animation:none}.studio{display:none}}
+/* ====== Атака хмуриков 2.0: выбор героя и режима ====== */
+.sv-lead{font-size:14px;line-height:1.45;color:var(--muted)}
+.sv-heroes{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.sv-hero{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:64px;padding:6px 2px 5px;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:rgba(255,255,255,.05);color:var(--ink);cursor:pointer;font:600 10px/1.1 var(--font-body)}
+.sv-hero img{width:46px;height:46px;margin:-4px 0 -2px;object-fit:contain}
+.sv-hero b{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.sv-hero i{position:absolute;top:3px;right:4px;font:700 9px/1 var(--font-body);font-style:normal;color:var(--gold)}
+.sv-hero.on{border-color:var(--gold);background:rgba(244,214,154,.14);box-shadow:0 0 0 1px var(--gold) inset}
+.sv-hero.locked img{filter:grayscale(1) brightness(.45)}
+.sv-hero.locked b{color:var(--muted)}
+.sv-hinfo{font-size:13px;line-height:1.45;color:var(--ink);min-height:2.9em}
+.sv-hinfo small{color:var(--muted);font-size:12px}
+.sv-mode{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.sv-mode button{min-height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:var(--ink);font:600 13px/1.2 var(--font-body);cursor:pointer}
+.sv-mode button.on{border-color:var(--gold);color:var(--gold);background:rgba(244,214,154,.12)}
+.sv-mode button[data-m=night].on{border-color:#FF6F9C;color:#FFB3C9;background:rgba(255,80,130,.12)}
+.sv-mode button:disabled{opacity:.45;cursor:default}
+.sv-rules summary{cursor:pointer;color:var(--gold);font:600 13px/1.4 var(--font-body);min-height:32px}
+.sv-rules p{margin-top:8px!important;font-size:13px;line-height:1.45;color:var(--muted)}
+@media (max-width:340px){.sv-hero b{font-size:9px}.sv-hero img{width:32px;height:32px}}
 /* удобство касаний: цели не меньше 44 px */
 .diff button{min-height:44px}
 .lvl.wide .badge ~ .lv-txt h3{padding-right:72px}
@@ -1023,11 +1043,16 @@ body,#app{background:#0E1430}
         <div class="overlay" id="svIntro">
           <div class="panel">
             <h2>Атака хмуриков</h2>
-            <p>Пять ночей подряд в парк приходят хмурики: тучки, будильники, домашка, брокколи, капли, тучки-стрелки и призраки. В конце каждой ночи — огромный босс, а в последнюю приходит сам Король Хмури.</p>
-            <p>Води пальцем — Лера убегает, а стрелы купидона летят сами. Собирай искорки: на каждом новом уровне выбирай одно из трёх улучшений. Оружия 13 видов, носить можно шесть.</p>
-            <p>Со второй ночи бьют молнии: красный круг на земле — значит, пора бежать. Отсидеться на месте не выйдет.</p>
-            <p>Прокачай оружие до максимума и возьми подходящую силу — случится эволюция ★. Грозовые тучи носят подарки.</p>
-            <p>После каждой ночи игра сохраняется: если Лера проиграет, можно продолжить с начала той же ночи со всей прокачкой.</p>
+            <p class="sv-lead">Пять ночей, толпы хмуриков и босс в конце каждой. Выбери героя — у каждого своё оружие и врождённое умение.</p>
+            <div class="sv-heroes" id="svHeroes" role="group" aria-label="Герой"></div>
+            <p class="sv-hinfo" id="svHeroInfo" aria-live="polite"></p>
+            <div class="sv-mode" id="svMode" role="group" aria-label="Сложность"><button type="button" data-m="normal">Обычная</button><button type="button" data-m="night">Кошмар</button></div>
+            <p class="sv-hinfo" id="svModeInfo"></p>
+            <details class="sv-rules"><summary>Как играть</summary>
+              <p>Води пальцем — герой бежит туда, оружие стреляет само. Собирай искорки: на каждом уровне выбирай одно из трёх улучшений. Оружия 13 видов, носить можно шесть.</p>
+              <p>Со второй ночи бьют молнии: красный круг на земле — пора бежать. Посреди ночи приходит Охотник — за него два подарка. Кисель делится надвое, колючки стреляют веером.</p>
+              <p>Прокачай оружие до максимума и возьми подходящую силу — случится эволюция ★. После каждой ночи игра сохраняется.</p>
+            </details>
             <button class="btn gold" id="svCont" type="button" hidden>Продолжить</button>
             <button class="btn" id="svStart" type="button">Новая игра</button>
           </div>
@@ -2418,6 +2443,7 @@ const LOOKS = {
     { id: "star", name: "Звёздная ночь", need: [() => prog.stars, "Поймай все звёзды"], c: { top: "#3A2C7A", topD: "#2A1E5E", sleeve: "#3A2C7A", sleeveD: "#2A1E5E", leg: "#B79CFF", legD: "#9278E0", waist: "#FFD23F", shoe: "#FFD23F", shoeD: "#D9A520" } },
     { id: "winter", name: "Зимняя", need: [() => (prog.towerBest || 0) >= 150, "Поднимись на 150 м"], c: { top: "#BFE3FF", topD: "#8EC0EA", sleeve: "#FFFFFF", sleeveD: "#DDE6F5", leg: "#3E5A8A", legD: "#2C4470", waist: "#FFFFFF", shoe: "#8A5A3B", shoeD: "#6E4129" } },
     { id: "hero", name: "Охотница", need: [() => svStage() >= 2, "Дойди до 3-й ночи «Атаки хмуриков»"], c: { top: "#1E5A52", topD: "#14403A", sleeve: "#2EC4A9", sleeveD: "#1E9A84", leg: "#2E2938", legD: "#1F1B27", waist: "#2EC4A9", shoe: "#3A2E28", shoeD: "#2A201C" } },
+    { id: "nightmare", name: "Полночь", need: [() => prog.survNight, "Пройди «Кошмар» в «Атаке хмуриков»"], c: { top: "#2A1240", topD: "#1A0A2A", sleeve: "#5A2A8A", sleeveD: "#3E1A62", leg: "#1E1A2E", legD: "#120F1C", waist: "#FF6F9C", shoe: "#FF6F9C", shoeD: "#C94A76" } },
     { id: "queen", name: "Королева", need: [() => cupsCount() >= 1, "Выиграй кубок во «Вкусной битве»"], crown: true, c: { top: "#FFD23F", topD: "#D9A520", sleeve: "#FFF1A8", sleeveD: "#E6CF70", leg: "#FFFFFF", legD: "#E2DDF0", waist: "#E8322B", shoe: "#E8322B", shoeD: "#B8241E" } }
   ],
   style: [
@@ -5932,9 +5958,9 @@ ICON_FN.towerIc = () => {
 const SV_STAGES = [
   { name: "НОЧЬ 1", sub: "ТИХИЙ ПАРК", len: 180, table: [["cloud", 10], ["clock", 5]], boss: "bigClock" },
   { name: "НОЧЬ 2", sub: "ДОЖДЛИВАЯ АЛЛЕЯ", len: 180, table: [["cloud", 5], ["clock", 6], ["books", 5], ["drop", 6]], boss: "general" },
-  { name: "НОЧЬ 3", sub: "ГРОЗОВОЙ ЛЕС", len: 180, table: [["cloud", 3], ["clock", 4], ["books", 6], ["drop", 5], ["zap", 2], ["brocc", 3]], boss: "brocKing" },
-  { name: "НОЧЬ 4", sub: "ТУМАННОЕ ОЗЕРО", len: 180, table: [["books", 5], ["brocc", 5], ["ghost", 4], ["zap", 3], ["drop", 5]], boss: "homework" },
-  { name: "НОЧЬ 5", sub: "ПОСЛЕДНИЙ РАССВЕТ", len: 210, table: [["brocc", 5], ["ghost", 5], ["zap", 3], ["drop", 5], ["books", 4], ["clock", 4]], boss: "king" }
+  { name: "НОЧЬ 3", sub: "ГРОЗОВОЙ ЛЕС", len: 180, table: [["cloud", 3], ["clock", 4], ["books", 6], ["drop", 5], ["zap", 2], ["brocc", 3], ["jelly", 2]], boss: "brocKing" },
+  { name: "НОЧЬ 4", sub: "ТУМАННОЕ ОЗЕРО", len: 180, table: [["books", 5], ["brocc", 5], ["ghost", 4], ["zap", 3], ["drop", 5], ["jelly", 3], ["thorn", 2]], boss: "homework" },
+  { name: "НОЧЬ 5", sub: "ПОСЛЕДНИЙ РАССВЕТ", len: 210, table: [["brocc", 5], ["ghost", 5], ["zap", 3], ["drop", 5], ["books", 4], ["clock", 4], ["jelly", 3], ["thorn", 2]], boss: "king" }
 ];
 const SV_BOSSES = {
   bigClock: { name: "БУДИЛЬНИК-ВЕЛИКАН", hp: 1500, sp: .75, r: 18, spr: "clockBig", atk: ["charge", "ring"], every: 150 },
@@ -5943,9 +5969,9 @@ const SV_BOSSES = {
   homework: { name: "ДОМАШКА-МОНСТР", hp: 6000, sp: .6, r: 20, spr: "booksBig", atk: ["spiral", "charge", "summon"], every: 135 },
   king: { name: "КОРОЛЬ ХМУРИ", hp: 10000, sp: .65, r: 26, spr: "boss", atk: ["ring", "summon", "charge", "spiral", "slam"], every: 115 }
 };
-// хмурики крепнут с каждой минутой (t — минуты с начала)
+// хмурики крепнут с каждой ночью и с каждой минутой внутри ночи (t — «минуты»: ночь × nightMin + минуты этой ночи) — медленная сборка не получает двойной штраф
 // Все настройки сложности в одном месте
-const SV_TUNE = { hpA: .42, hpB: .02, dens: .85, densDiv: 42, kbStage: .15, elite0: .008, eliteS: .007, strikes: true, strikeGap: 270, strikeStep: 28 };
+const SV_TUNE = { hpA: .5, hpB: .023, dens: 1, densDiv: 38, kbStage: .17, elite0: .011, eliteS: .01, dmgS: .15, bossHp: 1.2, gifts: 8, nightMin: 4, strikes: true, strikeGap: 270, strikeStep: 28 };
 const svMul = t => 1 + t * SV_TUNE.hpA + t * t * SV_TUNE.hpB;
 const SV_ENEMIES = {
   cloud: { hp: 7, sp: .55, dmg: 8, xp: 1, r: 8 },
@@ -5956,7 +5982,11 @@ const SV_ENEMIES = {
   drop: { hp: 5, sp: 1.15, dmg: 7, xp: 1, r: 6 },
   zap: { hp: 28, sp: .5, dmg: 10, xp: 4, r: 9 },
   ghost: { hp: 45, sp: .6, dmg: 14, xp: 6, r: 10 },
-  boss: { hp: 2000, sp: .6, dmg: 30, xp: 0, r: 26 }
+  boss: { hp: 2000, sp: .6, dmg: 30, xp: 0, r: 26 },
+  // кисель: при гибели делится на двух маленьких; колючка: врастает в землю и стреляет веером
+  jelly: { hp: 24, sp: .55, dmg: 12, xp: 3, r: 9 },
+  jellyS: { hp: 9, sp: .95, dmg: 7, xp: 1, r: 6 },
+  thorn: { hp: 42, sp: .32, dmg: 12, xp: 5, r: 9 }
 };
 const SV_SPR = {
   clock: { pal: { k: OL, Y: "#FFD23F", R: "#E8322B", W: "#FFF5E0" }, rows: [
@@ -5977,6 +6007,9 @@ const SV_SPR = {
     "..kkkkk..", ".kWWWWWk.", "kWWWWWWWk", "kWeWWWeWk", "kWWWWWWWk", "kWWWeWWWk", "kWWeWeWWk", "kWWWWWWWk", "kwWwWwWwk", "kk.kk.kkk"] },
   zap: { pal: { k: OL, M: "#4E4870", m: "#2E2848", e: "#FFD23F", Z: "#FFD23F" }, rows: [
     "....kkkk....", "..kkMMMMkk..", ".kMMMMMMMMk.", "kMMeMMMMeMMk", "kMMMMeeMMMMk", ".kmmmmmmmmk.", "..kkkZkkkk..", "....ZZ......", "...ZZ.......", "....Z......."] },
+  // новые хмурики — только векторные (c3-art.js), строки задают размер в клетках
+  jelly: { pal: { P: "#C77DFF", p: "#8E4FD6", e: "#2A1240" }, rows: Array(8).fill("J".repeat(10)) },
+  thorn: { pal: { G: "#4FA65A", g: "#2F7A3A", F: "#FF6F9C", T: "#C8653A", e: "#1A2A12" }, rows: Array(11).fill("T".repeat(9)) },
   gift: { pal: { k: OL, R: "#E8322B", r: "#B8241E", Y: "#FFD23F" }, rows: [
     ".kk.kk.", "kYYkYYk", "kkkYkkk", "kRRYRRk", "kRRYRRk", "krrYrrk", "kkkkkkk"] }
 };
@@ -6048,6 +6081,31 @@ const SV_TREATS = {
   cola: { name: "Кола", ic: "cola", desc: "+40 к здоровью прямо сейчас." },
   star: { name: "Звёздочка", ic: "star", desc: "Все искорки на поле летят к Лере." }
 };
+// Герои: стартовое оружие и врождённое умение. Открываются, когда Лера доходит до нужной ночи,
+// или за кубок этого бойца во «Вкусной битве»; после первой победы открыты все.
+const SV_HEROES = [
+  { id: "lera", w: "arrow", night: 0, skill: "Крылья любви", desc: "Бегает на 12% быстрее, а стрелы пробивают ещё одного хмурика." },
+  { id: "kolya", w: "kolya", night: 0, skill: "Очки насквозь", desc: "+12% к шансу двойного удара, и такой удар бьёт втрое." },
+  { id: "kraut", w: "kraut", night: 1, skill: "Рассол", desc: "Здоровье восстанавливается вдвое быстрее." },
+  { id: "cola", w: "bubble", night: 1, skill: "Шипучка", desc: "Каждые 5 секунд вокруг взрываются пузырьки и раскидывают хмуриков." },
+  { id: "choco", w: "choco", night: 2, skill: "Толстая плитка", desc: "+60 к здоровью и броня 15%, но бегает на 10% медленнее." },
+  { id: "crab", w: "crab", night: 2, skill: "Панцирь", desc: "Раз в 10 секунд один удар хмурика не ранит." },
+  { id: "ice", w: "frost", night: 3, skill: "Холодок", desc: "Хмурики рядом всегда на четверть медленнее." },
+  { id: "wok", w: "wok", night: 3, skill: "Жар вока", desc: "+25% к размаху, и вихрь сразу второго уровня." },
+  { id: "chips", w: "chips", night: 4, skill: "Хрустящая удача", desc: "Магнит на 50% сильнее и +15% опыта." },
+  { id: "rolls", w: "rolls", night: 4, skill: "Большой сет", desc: "+1 снаряд ко всему оружию, где снарядов несколько." }
+];
+const SV_HERO = Object.fromEntries(SV_HEROES.map(h => [h.id, h]));
+const svWonOnce = () => !!(prog.survBest && prog.survBest.won) || !!prog.survNight;
+const svHeroOpen = h => h.night === 0 || svStage() >= h.night || !!(prog.cups && prog.cups[h.id]) || svWonOnce();
+// Режимы: «Кошмар» открывается после первой победы
+const SV_MODES = {
+  normal: { name: "Обычная", hp: 1, dmg: 1, dens: 1, elite: 1, boss: SV_TUNE.bossHp, gifts: SV_TUNE.gifts },
+  night: { name: "Кошмар", hp: 1.7, dmg: 1.35, dens: 1.3, elite: 2.2, boss: 2.1, gifts: 1,
+    desc: "Хмурики крепче и злее, элитных вдвое больше, кисель и колючки с 2-й ночи, молнии с самого начала, за поражение — только один подарок." }
+};
+// глагол по роду героя: Лера продержалась, Коля продержался, Роллы продержались
+const svVb = (id, f, m, pl) => { const g = FBY[id].g; return g === "f" ? f : g === "pl" ? pl : m; };
 const SV_MAX = 6, SV_SLOTS = 6;
 // перекрашенная копия спрайта (белая вспышка удара, лёд) — делается один раз
 const svTintCache = new Map();
@@ -6091,11 +6149,41 @@ const Surv = {
       crab: paint(SV_SPR.crab, 2), roll: paint(SV_SPR.roll, 1), chips: paint(SV_SPR.chips, 1), gift: paint(SV_SPR.gift, 2),
       drop: paint(SV_SPR.drop, 2), ghost: paint(SV_SPR.ghost, 2), zap: paint(SV_SPR.zap, 2),
       clockBig: paint(SV_SPR.clock, 5), broccBig: paint(SV_SPR.brocc, 4), booksBig: paint(SV_SPR.books, 5),
-      stormBig: paint({ pal: { ...SPR.cloud.pal, M: "#5B6188", m: "#3A3F5E", e: "#FFD23F" }, rows: SPR.cloud.rows }, 4)
+      stormBig: paint({ pal: { ...SPR.cloud.pal, M: "#5B6188", m: "#3A3F5E", e: "#FFD23F" }, rows: SPR.cloud.rows }, 4),
+      jelly: paint(SV_SPR.jelly, 2), jellyS: paint(SV_SPR.jelly, 1.3), thorn: paint(SV_SPR.thorn, 2)
     };
+    $("#svHeroes").addEventListener("click", e => {
+      const b = e.target.closest("[data-h]"); if (!b) return;
+      const h = SV_HERO[b.dataset.h];
+      if (!svHeroOpen(h)) { $("#svHeroInfo").innerHTML = `<b>${FBY[h.id].name}</b> откроется, когда Лера дойдёт до ${h.night + 1}-й ночи, или за кубок этим бойцом во «Вкусной битве».`; SFX.bump(); return; }
+      this.setPick({ hero: h.id });
+    });
+    $("#svMode").addEventListener("click", e => { const b = e.target.closest("[data-m]"); if (b && !b.disabled) this.setPick({ mode: b.dataset.m }); });
+  },
+  // выбор героя и режима на стартовом экране (запоминается)
+  setPick(o) {
+    const p = { ...store.get("lera-surv-pick", { hero: "lera", mode: "normal" }), ...o };
+    if (!SV_HERO[p.hero] || !svHeroOpen(SV_HERO[p.hero])) p.hero = "lera";
+    if (p.mode !== "night" || !svWonOnce()) p.mode = "normal";
+    store.set("lera-surv-pick", p); this.pickHero = p.hero; this.pickMode = p.mode;
+    const recs = prog.survHeroes || {};
+    $("#svHeroes").innerHTML = SV_HEROES.map(h => {
+      const open = svHeroOpen(h), on = h.id === p.hero, r = recs[h.id];
+      return `<button class="sv-hero${open ? "" : " locked"}${on ? " on" : ""}" type="button" data-h="${h.id}" aria-pressed="${on}"${open ? "" : ` aria-label="${FBY[h.id].name}: закрыт"`}>` +
+        `<img src="${icon("f_" + h.id)}" alt=""><b>${FBY[h.id].name}</b>${r != null ? `<i>${r >= 5 ? "★" : r + 1}</i>` : ""}</button>`;
+    }).join("");
+    const h = SV_HERO[p.hero];
+    $("#svHeroInfo").innerHTML = `<b>${h.skill}.</b> ${h.desc}<br><small>Стартовое оружие: ${SV_WEAPONS[h.w].name}.</small>`;
+    $$("#svMode button").forEach(b => {
+      const night = b.dataset.m === "night", lock = night && !svWonOnce();
+      b.classList.toggle("on", b.dataset.m === p.mode); b.setAttribute("aria-pressed", b.dataset.m === p.mode); b.disabled = lock;
+      if (night) b.textContent = lock ? "Кошмар — после победы" : "Кошмар";
+    });
+    $("#svModeInfo").textContent = p.mode === "night" ? SV_MODES.night.desc : "Пять ночей, боссы, сохранение после каждой ночи.";
   },
   enter() {
     Player.suggest("surv");
+    this.setPick({});
     $("#svIntro").hidden = false; $("#svOver").hidden = true; $("#svUp").hidden = true; $("#svPaused").hidden = true;
     this.syncButtons();
     this.resize(); this.reset(); this.running = false;
@@ -6110,18 +6198,30 @@ const Surv = {
     this.W = r.W; this.H = r.H; this.dark = null;
   },
   reset() {
-    this.L = { def: FBY.lera, f: 1, x: 0, y: 0, h: 0, vy: 0, jumps: 0, state: "idle", t: 0, flash: 0, frozen: 0, slow: 0, charm: 0,
+    const hero = SV_HERO[this.hero] ? this.hero : "lera";
+    this.hero = hero; this.M = SV_MODES[this.mode] || SV_MODES.normal; this.mercy = 0;
+    this.L = { def: FBY[hero], f: 1, x: 0, y: 0, h: 0, vy: 0, jumps: 0, state: "idle", t: 0, flash: 0, frozen: 0, slow: 0, charm: 0,
       hp: 120, maxHp: 120, inv: 0, speed: 1.15, magnet: 42, cdMul: 1, dmgMul: 1, dx: 1, dy: 0,
       area: 1, amount: 0, dur: 1, crit: 0, regen: 90, armor: 1, xpMul: 1, revives: 0 };
     this.en = []; this.shots = []; this.gems = []; this.puddles = []; this.rings = []; this.beams = []; this.parts = []; this.texts = []; this.drops = [];
     this.falls = []; this.mines = []; this.woks = []; this.crabs = [];
-    this.weapons = { arrow: { lvl: 1, cd: 30 } }; this.stats = {};
+    this.weapons = { [SV_HERO[hero].w]: { lvl: hero === "wok" ? 2 : 1, cd: 30 } }; this.stats = {};
+    // врождённые умения героев
+    const L = this.L; L.shell = 0;
+    if (hero === "lera") L.speed *= 1.12;
+    if (hero === "kolya") L.crit = .12;
+    if (hero === "kraut") L.regen = 45;
+    if (hero === "choco") { L.maxHp = L.hp = 180; L.armor = .85; L.speed *= .9; }
+    if (hero === "wok") L.area = 1.25;
+    if (hero === "chips") { L.magnet *= 1.5; L.xpMul = 1.15; }
+    if (hero === "rolls") L.amount = 1;
     this.t = 0; this.kills = 0; this.lvl = 1; this.xp = 0; this.need = this.xpNeed(1); this.rerolls = 2; this.pending = 0;
     this.spawnT = 0; this.bossOn = false; this.boss = null; this.shake = 0; this.banner = null; this.paused = false; this.choosing = false; this.won = false;
     this.stage = 0; this.st = 0; this.ev = {}; this.waves = []; this.strikes = []; this.still = 0; this.nextStrike = 240; this.stormHint = false;
     this.hud(); this.inv();
   },
   start() {
+    this.hero = this.pickHero || "lera"; this.mode = this.pickMode || "normal";
     this.reset(); this.running = true;
     $("#svIntro").hidden = true; $("#svOver").hidden = true;
     this.stageBanner();
@@ -6130,12 +6230,13 @@ const Surv = {
   // сохранение после каждой ночи: оружие, силы и уровень Леры
   save() {
     const L = this.L, keep = ["hp", "maxHp", "speed", "magnet", "cdMul", "dmgMul", "area", "amount", "dur", "crit", "regen", "armor", "xpMul", "revives"];
-    store.set("lera-surv-save", { stage: this.stage, t: this.t, lvl: this.lvl, xp: this.xp, need: this.need, kills: this.kills, rerolls: this.rerolls,
+    store.set("lera-surv-save", { hero: this.hero, mode: this.mode, stage: this.stage, t: this.t, lvl: this.lvl, xp: this.xp, need: this.need, kills: this.kills, rerolls: this.rerolls,
       weapons: Object.fromEntries(Object.entries(this.weapons).map(([k, w]) => [k, { lvl: w.lvl, evo: !!w.evo }])), stats: this.stats, L: Object.fromEntries(keep.map(k => [k, L[k]])) });
   },
   saved() { return store.get("lera-surv-save", null); },
   resume() {
     const sv = this.saved(); if (!sv) { this.start(); return; }
+    this.hero = sv.hero || "lera"; this.mode = sv.mode || "normal";
     this.reset();
     Object.assign(this.L, sv.L); this.L.hp = this.L.maxHp;
     Object.assign(this, { stage: sv.stage, t: sv.t, lvl: sv.lvl, xp: sv.xp, need: sv.need, kills: sv.kills, rerolls: Math.max(1, sv.rerolls), stats: { ...sv.stats } });
@@ -6143,12 +6244,14 @@ const Surv = {
     this.running = true; $("#svIntro").hidden = true; $("#svOver").hidden = true;
     this.inv(); this.hud(); this.stageBanner();
     // попытка не пропадает: за каждое поражение на этой ночи — подарок-улучшение (до 5)
-    const gifts = Math.min(5, sv.tries || 0);
+    const gifts = Math.min(this.M.gifts, sv.tries || 0);
+    // после многих поражений на одной ночи хмурики этой ночи понемногу слабеют — застрять навсегда нельзя
+    this.mercy = Math.min(this.mode === "night" ? .15 : .3, Math.max(0, (sv.tries || 0) - 3) * .04);
     if (gifts) { this.pending = gifts; this.banner = { text: SV_STAGES[this.stage].name, sub: `ПОДАРКОВ ЗА ПОПЫТКИ: ${gifts}`, life: 150 }; }
   },
   syncButtons() {
     const sv = this.saved();
-    ["#svCont", "#svCont2"].forEach(id => { const b = $(id); b.hidden = !sv; if (sv) b.textContent = `Продолжить: ${SV_STAGES[sv.stage].name.toLowerCase().replace("ночь", "Ночь")}`; });
+    ["#svCont", "#svCont2"].forEach(id => { const b = $(id); b.hidden = !sv; if (sv) b.textContent = `Продолжить: ${SV_STAGES[sv.stage].name.toLowerCase().replace("ночь", "Ночь")} · ${FBY[sv.hero || "lera"].name}${sv.mode === "night" ? " · кошмар" : ""}`; });
   },
   xpNeed(l) { return Math.round(5 + l * 3.5 + l * l * .42); },
   hud() {
@@ -6167,15 +6270,16 @@ const Surv = {
   /* --- враги --- */
   spawnEnemy(type, ang, rad0) {
     const d = SV_ENEMIES[type], L = this.L, a = ang == null ? rand(0, 6.283) : ang, rad = rad0 || Math.hypot(this.W, this.H) / 2 + 20;
-    const mul = svMul(this.t / 3600), elite = type !== "storm" && Math.random() < SV_TUNE.elite0 + this.stage * SV_TUNE.eliteS;
+    const M = this.M || SV_MODES.normal, mul = svMul(this.stage * SV_TUNE.nightMin + this.st / 3600) * M.hp * (1 - (this.mercy || 0)), elite = type !== "storm" && type !== "jellyS" && Math.random() < (SV_TUNE.elite0 + this.stage * SV_TUNE.eliteS) * M.elite;
     const hp = d.hp * mul * (elite ? 6 : 1);
-    const e = { type, x: L.x + Math.cos(a) * rad, y: L.y + Math.sin(a) * rad, hp, max: hp, sp: d.sp * rand(.9, 1.1) * (elite ? .85 : 1), dmg: d.dmg * (1 + this.stage * .12) * (elite ? 1.5 : 1), r: d.r * (elite ? 1.4 : 1), xp: d.xp * (elite ? 10 : 1), flash: 0, hitCd: {}, slow: 0, ph: rand(0, 6), shootT: rand(60, 160), elite };
+    const e = { type, x: L.x + Math.cos(a) * rad, y: L.y + Math.sin(a) * rad, hp, max: hp, sp: d.sp * rand(.9, 1.1) * (elite ? .85 : 1), dmg: d.dmg * (1 + this.stage * SV_TUNE.dmgS) * M.dmg * (elite ? 1.5 : 1), r: d.r * (elite ? 1.4 : 1), xp: d.xp * (elite ? 10 : 1), flash: 0, hitCd: {}, slow: 0, ph: rand(0, 6), shootT: rand(60, 160), elite };
     this.en.push(e); return e;
   },
   spawnBoss() {
     const k = SV_STAGES[this.stage].boss, B = SV_BOSSES[k];
     const e = this.spawnEnemy("cloud", null, Math.hypot(this.W, this.H) / 2 + 30);
-    Object.assign(e, { type: "boss", bk: k, hp: B.hp, max: B.hp, sp: B.sp, r: B.r, dmg: 26 + this.stage * 8, xp: 0, elite: false, atkT: 120, atkI: 0 });
+    const bhp = B.hp * this.M.boss;
+    Object.assign(e, { type: "boss", bk: k, hp: bhp, max: bhp, sp: B.sp, r: B.r, dmg: 26 + this.stage * 8, xp: 0, elite: false, atkT: 120, atkI: 0 });
     this.boss = e; this.bossOn = true;
     this.banner = { text: "БОСС!", sub: B.name, life: 150 }; SFX.ko(); shakeSv(this, 6);
   },
@@ -6189,15 +6293,24 @@ const Surv = {
       const n = 22 + this.stage * 5, gap = rand(0, 6.283);
       for (let i = 0; i < n; i++) { const a = gap + .55 + i / n * (6.283 - 1.1); this.spawnEnemy(this.stage < 3 ? "cloud" : "books", a, 150); }
     }
+    // охотник: крепкий элитный хмурик посреди ночи, за него — два подарка
+    if (sec >= 140 && !this.ev.hunt && this.stage > 0 && !this.bossOn) {
+      this.ev.hunt = true; const k = this.stage < 3 ? "brocc" : "ghost", e = this.spawnEnemy(k);
+      Object.assign(e, { elite: true, hunter: true, hp: e.hp * (e.elite ? 2.3 : 14), r: SV_ENEMIES[k].r * 1.5, sp: SV_ENEMIES[k].sp * 1.25, dmg: e.dmg * 1.3 }); e.max = e.hp;
+      this.banner = { text: "ОХОТНИК!", sub: "ПОБЕДИ ЕГО — БУДЕТ ДВА ПОДАРКА", life: 110 }; SFX.whip();
+    }
     if (!this.bossOn && this.st >= S.len * 60 && !this.boss) this.spawnBoss();
     if (--this.spawnT > 0) return;
     this.spawnT = this.bossOn ? 60 : 38;
     if (this.en.length > 200) return;
-    const n = Math.max(1, Math.round((1 + sec / SV_TUNE.densDiv + Math.min(this.stage, 3) * SV_TUNE.dens) * (this.bossOn ? .5 : 1)));
-    const table = S.table, tot = table.reduce((a, [, w]) => a + w, 0), base = rand(0, 6.283);
+    const n = Math.max(1, Math.round((1 + sec / SV_TUNE.densDiv + Math.min(this.stage, 3) * SV_TUNE.dens) * (this.bossOn ? .5 : 1) * this.M.dens));
+    const table = this.mode === "night" && this.stage > 0 && this.stage < 3 ? S.table.concat([["jelly", 3], ["thorn", 2]]) : S.table, tot = table.reduce((a, [, w]) => a + w, 0), base = rand(0, 6.283);
+    // стрелков (тучки-стрелки и колючки) не больше 8 разом — иначе поле превращается в тир
+    let shooters = 0; for (const e of this.en) if (e.type === "zap" || e.type === "thorn") shooters++;
     for (let i = 0; i < n; i++) {
       let r = Math.random() * tot, k = table[0][0];
       for (const [nm, w] of table) { if ((r -= w) < 0) { k = nm; break; } }
+      if (k === "zap" || k === "thorn") { if (shooters >= 8) k = "drop"; else shooters++; }
       this.spawnEnemy(k, Math.random() < .4 ? base + rand(-.4, .4) : null);
     }
     // грозовая туча с подарком: раз в 40 секунд
@@ -6239,7 +6352,7 @@ const Surv = {
   hit(e, dmg, kx, ky) {
     if (e.dead) return;
     const crit = Math.random() < this.L.crit;
-    dmg = Math.round(dmg * this.L.dmgMul * (crit ? 2 : 1));
+    dmg = Math.round(dmg * this.L.dmgMul * (crit ? (this.hero === "kolya" ? 3 : 2) : 1));
     e.hp -= dmg; e.flash = 4;
     if (kx || ky) { const k = (e.type === "boss" ? .05 : e.type === "storm" || e.elite || e.type === "brocc" || e.type === "ghost" ? .3 : 1) / (1 + this.stage * SV_TUNE.kbStage); e.x += kx * k; e.y += ky * k; }
     if (this.texts.length < 24 || crit) this.texts.push({ s: String(dmg), x: e.x + rand(-3, 3), y: e.y - e.r - 2, age: 0, life: 28, col: crit ? "#FFD23F" : null });
@@ -6254,7 +6367,9 @@ const Surv = {
     e.dead = true; this.kills++;
     for (let i = 0; i < (e.type === "boss" ? 40 : 7); i++) this.part(e.x, e.y, rand(-1.5, 1.5), rand(-1.5, 1.5), pick(["#A3A9C2", "#6B7190", "#FFFFFF", "#FF8FB1"]), rand(14, 26), Math.random() < .3 ? 2 : 1);
     if (e.type === "boss") { this.bossDown(e); return; }
-    if (e.elite) this.drops.push({ k: Math.random() < .4 ? "gift" : "cola", x: e.x, y: e.y });
+    if (e.hunter) { this.drops.push({ k: "gift", x: e.x - 8, y: e.y }, { k: "gift", x: e.x + 8, y: e.y }); this.banner = { text: "ОХОТНИК ПОВЕРЖЕН", sub: "ЗАБИРАЙ ПОДАРКИ", life: 90 }; }
+    else if (e.elite) this.drops.push({ k: Math.random() < .4 ? "gift" : "cola", x: e.x, y: e.y });
+    if (e.type === "jelly") for (let i = 0; i < 2; i++) { const m = this.spawnEnemy("jellyS"); m.x = e.x + (i ? 7 : -7); m.y = e.y + rand(-4, 4); m.flash = 6; }
     let xp = e.xp;
     while (xp > 0) { const v = xp >= 5 ? 5 : 1; this.gems.push({ x: e.x + rand(-4, 4), y: e.y + rand(-4, 4), v, pull: false }); xp -= v; }
     if (e.type === "storm") this.drops.push({ k: "gift", x: e.x, y: e.y });
@@ -6266,13 +6381,19 @@ const Surv = {
   hurt(dmg) {
     const L = this.L;
     if (L.inv > 0) return false;
+    if (this.hero === "crab" && L.shell <= 0) {
+      L.shell = 600; L.inv = 30; SFX.block();
+      this.rings.push({ x: L.x, y: L.y - 8, r: 4, R: 26, life: 18, cols: ["#FF6A4D", "#FFFFFF"] });
+      this.texts.push({ s: "ПАНЦИРЬ!", x: L.x, y: L.y - 34, age: 0, life: 40, col: "#FF8A70" });
+      return false;
+    }
     L.hp -= Math.max(1, Math.round(dmg * L.armor)); L.inv = 36; L.flash = 6; shakeSv(this, 3); SFX.hurt();
     for (let i = 0; i < 8; i++) this.part(L.x, L.y - 14, rand(-1.5, 1.5), rand(-1.5, 1.5), "#FF4D7E", 18, 1);
     if (L.hp <= 0) {
       if (L.revives > 0) {
         L.revives--; L.hp = Math.round(L.maxHp * .6); L.inv = 150;
         for (const e of this.en) { const d = Math.hypot(e.x - L.x, e.y - L.y); if (d < 110 && e.type !== "boss") { e.x += (e.x - L.x) / (d || 1) * 60; e.y += (e.y - L.y) / (d || 1) * 60; } }
-        this.banner = { text: "ВТОРОЙ ШАНС!", sub: "ЛЕРА НЕ СДАЁТСЯ", life: 110 };
+        this.banner = { text: "ВТОРОЙ ШАНС!", sub: `${FBY[this.hero].name.toUpperCase()} НЕ ${svVb(this.hero, "СДАЁТСЯ", "СДАЁТСЯ", "СДАЮТСЯ")}`, life: 110 };
         this.rings.push({ x: L.x, y: L.y - 8, r: 4, R: 110, life: 26, cols: ["#FFFFFF", "#FF8FB1"] });
         SFX.achieve();
         delete this.stats.revive;
@@ -6295,7 +6416,7 @@ const Surv = {
         for (let i = 0; i < n; i++) {
           const tg = this.nearest(L.x, L.y, used) || this.nearest(L.x, L.y); if (!tg) break; used.add(tg);
           const a = Math.atan2(tg.y - L.y, tg.x - L.x) + (i >= this.en.length ? rand(-.3, .3) : 0);
-          this.shots.push({ k: "arrow", x: L.x, y: L.y - 10, vx: Math.cos(a) * 3.6, vy: Math.sin(a) * 3.6, life: 90, dmg: 6 + lv * 2.5, pierce: evo ? 99 : lv >= 4 ? 3 : 1, hit: new Set() });
+          this.shots.push({ k: "arrow", x: L.x, y: L.y - 10, vx: Math.cos(a) * 3.6, vy: Math.sin(a) * 3.6, life: 90, dmg: 6 + lv * 2.5, pierce: evo ? 99 : (lv >= 4 ? 3 : 1) + (this.hero === "lera" ? 1 : 0), hit: new Set() });
         }
         if (used.size) SFX.whoosh();
       } else if (id === "kraut") {
@@ -6481,6 +6602,8 @@ const Surv = {
     else L.state = "idle";
     L.t++; if (L.inv > 0) L.inv--; if (L.flash > 0) L.flash--;
     if (t % L.regen === 0 && L.hp < L.maxHp) L.hp++;
+    if (L.shell > 0) L.shell--;
+    if (this.hero === "cola" && t % 300 === 0) { this.blast(L.x, L.y - 8, 52 * L.area, 10 + this.lvl * 1.4, ["#FFFFFF", "#FF7A6B", "#FFD6D0"]); SFX.fizz(); }
     this.st++;
     this.spawnTick();
     this.fire();
@@ -6489,6 +6612,8 @@ const Surv = {
       if (e.frost > 0) e.frost--;
       const dx = L.x - e.x, dy = L.y - e.y, d = Math.hypot(dx, dy) || 1;
       let sp = e.sp * (e.slow > 0 ? (this.weapons.frost && this.weapons.frost.evo && e.frost > 0 ? .3 : .5) : 1); if (e.slow > 0) e.slow--;
+      if (this.hero === "ice" && d < 75) sp *= .75;
+      if (e.type === "thorn") { if (d < 150) sp = 0; if (--e.shootT <= 0) { e.shootT = 190; const a = Math.atan2(dy, dx); for (const o of [-.28, 0, .28]) this.foeShot(e.x, e.y - 6, a + o, 1.7); } }
       if (e.type === "zap") { if (d < 95) sp = -sp * .7; else if (d < 120) sp = 0; if (--e.shootT <= 0) { e.shootT = 170; this.foeShot(e.x, e.y, Math.atan2(dy, dx), 2); } }
       if (e.type === "boss" && d > 150) sp *= 2.4; // от босса не убежать
       if (e.charge > 0) { e.charge--; e.x += e.cvx; e.y += e.cvy; }
@@ -6543,7 +6668,7 @@ const Surv = {
     // Гроза: со 2-й ночи молнии бьют туда, где стоит Лера. Красный круг — секунда, чтобы уйти.
     // Кто стоит на месте дольше 2,5 с, получает молнии чаще и уже с 1-й ночи.
     const afk = this.still > 150;
-    if (SV_TUNE.strikes && (this.stage >= 1 || afk) && --this.nextStrike <= 0) {
+    if (SV_TUNE.strikes && (this.stage >= 1 || afk || this.mode === "night") && --this.nextStrike <= 0) {
       this.nextStrike = afk ? 75 : Math.max(120, SV_TUNE.strikeGap - this.stage * SV_TUNE.strikeStep);
       const n = afk || this.stage >= 4 ? 2 : 1;
       for (let i = 0; i < n; i++) { const a = rand(0, 6.283), off = i ? rand(26, 60) : 0; this.strikes.push({ x: L.x + Math.cos(a) * off, y: L.y + Math.sin(a) * off * .7, t: 0, T: 62, R: 21, dmg: 18 + this.stage * 6 }); }
@@ -6625,6 +6750,8 @@ const Surv = {
     const s = Math.floor(this.t / 60), txt = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
     const b = this.best, stage = won ? 5 : this.stage, better = !b || (b.stage || 0) < stage || ((b.stage || 0) === stage && s > b.s);
     if (better) { this.best = { s, won, stage, kills: this.kills, lvl: this.lvl }; setProg("survBest", this.best); }
+    const recs = { ...(prog.survHeroes || {}) }; if (recs[this.hero] == null || recs[this.hero] < stage) { recs[this.hero] = stage; setProg("survHeroes", recs); }
+    if (won && this.mode === "night" && !prog.survNight) { setProg("survNight", true); Toast.give("survNight", "Кошмар пройден", "crown"); }
     if (won) store.set("lera-surv-save", null);
     else { const sv = this.saved(); if (sv && sv.stage === this.stage) { sv.tries = (sv.tries || 0) + 1; store.set("lera-surv-save", sv); } }
     if (s >= 120) Toast.give("surv2", "Две минуты в строю", "heart");
@@ -6634,8 +6761,8 @@ const Surv = {
       if (current !== "surv") return;
       $("#svOverTitle").textContent = won ? "ПОБЕДА!" : better && s > 0 ? "Новый рекорд!" : "Хмурики победили";
       $("#svOverText").textContent = won
-        ? `Все пять ночей позади! Лера продержалась ${txt} и прогнала Короля Хмури. Уровень ${this.lvl}, хмуриков: ${this.kills}.`
-        : `${SV_STAGES[this.stage].name[0]}${SV_STAGES[this.stage].name.slice(1).toLowerCase()}, ${txt} в бою. Уровень ${this.lvl}, хмуриков: ${this.kills}.` + (this.saved() ? " Можно продолжить с начала этой ночи — вся прокачка сохранилась, а за каждую попытку Лера получит подарок-улучшение." : "");
+        ? `Все пять ночей${this.mode === "night" ? " кошмара" : ""} позади! ${FBY[this.hero].name} ${svVb(this.hero, "продержалась", "продержался", "продержались")} ${txt} и ${svVb(this.hero, "прогнала", "прогнал", "прогнали")} Короля Хмури. Уровень ${this.lvl}, хмуриков: ${this.kills}.`
+        : `${SV_STAGES[this.stage].name[0]}${SV_STAGES[this.stage].name.slice(1).toLowerCase()}, ${txt} в бою. Уровень ${this.lvl}, хмуриков: ${this.kills}.` + (this.saved() ? ` Можно продолжить с начала этой ночи — вся прокачка сохранилась, а за каждую попытку будет подарок-улучшение (не больше ${this.M.gifts}).` : "");
       this.syncButtons();
       $("#svOver").hidden = false;
     }, won ? 1400 : 900);
@@ -7203,6 +7330,33 @@ regArt(SV_SPR.gift, (x, p) => {
   VA.spec(x, 1.4, 3.6, .3, .9, .4, 0);
 });
 
+regArt(SV_SPR.jelly, (x, p) => {
+  // кисель: дрожащая капля-купол, внутри пузырьки
+  x.beginPath(); x.moveTo(.5, 7.4); x.bezierCurveTo(.2, 3.4, 2.4, .5, 5, .5); x.bezierCurveTo(7.6, .5, 9.8, 3.4, 9.5, 7.4);
+  x.quadraticCurveTo(8.6, 8, 7.6, 7.4); x.quadraticCurveTo(6.4, 8, 5, 7.5); x.quadraticCurveTo(3.6, 8, 2.4, 7.4); x.quadraticCurveTo(1.4, 8, .5, 7.4); x.closePath();
+  VA.glow(x, 5, 4.5, 6, p.P, .3);
+  x.globalAlpha = .93; VA.vol(x, p.P, .3, .5, 9.4, 7.5, { hi: .5, lo: .35, line: tone(p.p, -.45), lw: .4 }); x.globalAlpha = 1;
+  x.fillStyle = "rgba(255,255,255,.45)"; [[3, 5.6, .5], [7.2, 5.2, .35], [6, 6.4, .3]].forEach(([a, b, r]) => { VA.e(x, a, b, r, r); x.fill(); });
+  VA.spec(x, 3.1, 2.2, 1.4, .55, .7, -.5);
+  VA.eyes(x, 5, 3.9, 2.6, .66, "grump", p.e);
+  VA.mouth(x, 5, 5.5, 1.3, "frown", p.e);
+});
+regArt(SV_SPR.thorn, (x, p) => {
+  // колючка: кактус в горшке, хмурый, с розовым цветком
+  x.beginPath(); x.moveTo(1.6, 8); x.lineTo(7.4, 8); x.lineTo(6.8, 10.8); x.lineTo(2.2, 10.8); x.closePath(); VA.vol(x, p.T, 1.6, 8, 5.8, 2.8, { lw: .35 });
+  VA.rr(x, 1.3, 7.6, 6.4, 1.1, .4); VA.vol(x, tone(p.T, .15), 1.3, 7.6, 6.4, 1.1, { lw: .3, line: tone(p.T, -.5) });
+  x.beginPath(); x.moveTo(1.6, 6.2); x.quadraticCurveTo(.4, 6, .5, 4.2); x.lineTo(.6, 3.2); x.quadraticCurveTo(1.2, 2.7, 1.7, 3.3); x.lineTo(1.8, 4.6);
+  x.moveTo(7.4, 5.6); x.quadraticCurveTo(8.6, 5.4, 8.5, 3.6); x.lineTo(8.4, 2.8); x.quadraticCurveTo(7.8, 2.3, 7.3, 2.9); x.lineTo(7.2, 4.2);
+  x.strokeStyle = tone(p.g, -.4); x.lineWidth = 1.5; x.lineCap = "round"; x.stroke(); x.strokeStyle = p.G; x.lineWidth = .9; x.stroke();
+  VA.rr(x, 2.2, 1.2, 4.6, 6.8, 2.2); VA.vol(x, p.G, 2.2, 1.2, 4.6, 6.8, { line: tone(p.g, -.45), lw: .4 });
+  x.strokeStyle = tone(p.g, .1); x.lineWidth = .2; [3.4, 5.6].forEach(a => { x.beginPath(); x.moveTo(a, 2); x.lineTo(a, 7.6); x.stroke(); });
+  x.strokeStyle = "#FFF6D8"; x.lineWidth = .16;
+  [[2.3, 3], [6.7, 3.2], [2.2, 5.4], [6.8, 5.6], [4.5, 1.3], [.5, 3.6], [8.5, 3.2]].forEach(([a, b]) => { const s = a < 4.5 ? -1 : 1; x.beginPath(); x.moveTo(a, b); x.lineTo(a + s * .6, b - .35); x.stroke(); });
+  [0, 1.26, 2.51, 3.77, 5.03].forEach(an => { VA.e(x, 4.5 + Math.cos(an) * .6, 1 + Math.sin(an) * .6, .45, .3, an); x.fillStyle = p.F; x.fill(); });
+  VA.e(x, 4.5, 1, .3, .3); x.fillStyle = "#FFD23F"; x.fill();
+  VA.eyes(x, 4.5, 4, 2.1, .55, "grump", p.e);
+  VA.mouth(x, 4.5, 5.6, 1.1, "frown", p.e);
+});
 /* --- Иконки улучшений --- */
 regArt(SV_ICONS.svArea, (x, p) => {
   x.strokeStyle = tone(p.b, -.5); x.lineWidth = 1.6; x.lineCap = "round"; x.beginPath(); x.moveTo(5.9, 5.9); x.lineTo(8.3, 8.3); x.stroke();
